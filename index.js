@@ -131,40 +131,33 @@ var stupid = jsonfile.readFileSync('stupid.owo')
 var bitchhand = jsonfile.readFileSync('bitchhand.owo')
 
 function count_stupid(msg) {
-    var id = msg.from.id
-    if (!stupid[id]) {
-        stupid[id] = 1;
+    var combo = stupid[msg.from.id]
+    if (!combo) {
+        combo = 1;
     } else {
-        stupid[id] = stupid[id] + 1;
+        stupid[msg.from.id] = combo + 1;
     }
     var resp = "笨笨"
-    if (stupid[id] > 4) {
-        var resp = stupid[id] + " Combo"
-    }
-    if (bitchhand[id] > 20) {
-        var resp = "笨蛋沒有極限"
-    }
+    if (combo > 4) { var resp = combo + " Combo" }
+    if (combo > 20) { var resp = "笨蛋沒有極限" }
+    if (combo > 40) { var resp = "你這智障" }
+    if (combo > 60) { var resp = combo + " Combo" }
     jsonfile.writeFileSync('stupid.owo', stupid)
     bot.sendMessage(msg.chat.id, resp, { parse_mode: "markdown", reply_to_message_id: msg.message_id });
 }
 
 function count_bitchhand(msg) {
-    var id = msg.from.id
-    if (!bitchhand[id]) {
-        bitchhand[id] = 1;
+    var combo = bitchhand[msg.from.id];
+    if (!combo) {
+        combo = 1;
     } else {
-        bitchhand[id] = bitchhand[id] + 1;
+        bitchhand[msg.from.id] = combo + 1;
     }
     var resp = "走開"
-    if (bitchhand[id] > 4) {
-        var resp = bitchhand[id] + " Combo"
-    }
-    if (bitchhand[id] > 20) {
-        var resp = "走開，你這賤人"
-    }
-    if (bitchhand[id] > 40) {
-        var resp = "你這臭 Bitch"
-    }
+    if (combo > 4) { var resp = combo + " Combo" }
+    if (combo > 20) { var resp = "走開，你這賤人" }
+    if (combo > 40) { var resp = "你這臭 Bitch" }
+    if (combo > 60) { var resp = combo + " Combo" }
     jsonfile.writeFileSync('bitchhand.owo', bitchhand)
     bot.sendMessage(msg.chat.id, resp, { parse_mode: "markdown", reply_to_message_id: msg.message_id });
 }
