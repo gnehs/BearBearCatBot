@@ -1,15 +1,6 @@
-var fs = require('fs'); 
+var token = require('./token.js');
 var TelegramBot = require('node-telegram-bot-api');
-var bot = new TelegramBot(token, {polling: true});
-fs.readfile(__dirname+'/file.txt',function(error, content){
-    if(error){
-        console.log(error);
-    }
-    else {
-        var token = content.toString();
-    }
-});
-
+var bot = new TelegramBot(token.botToken, {polling: true});
 bot.onText(/\/start/, function (msg) {
     var chatId = msg.chat.id; //用戶的ID
     var resp = '你好'; //括號裡面的為回應內容，可以隨意更改
