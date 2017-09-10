@@ -34,6 +34,10 @@ bot.onText(/\/help/, function(msg) {
             Description: "移除鍵盤",
         },
         {
+            Command: 'viewCombo',
+            Description: "查看手賤賤及笨蛋的 Combo",
+        },
+        {
             Command: 'cleanCombo',
             Description: "清除手賤賤及笨蛋的 Combo(無法復原)",
         },
@@ -78,6 +82,10 @@ bot.onText(/\/removeKeyboard/, function(msg) {
     bot.sendMessage(msg.chat.id, '鍵盤已移除', opts);
 });
 
+bot.onText(/\/viewCombo/, function(msg) {
+    resp = "手賤賤：" + bitchhand[msg.from.id] + "次\n你笨笨：" + stupid[msg.from.id] + "次"
+    bot.sendMessage(msg.chat.id, resp, { reply_to_message_id: msg.message_id });
+});
 bot.onText(/\/cleanCombo/, function(msg) {
     bitchhand[msg.from.id] = 0;
     stupid[msg.from.id] = 0;
@@ -135,15 +143,18 @@ function count_stupid(msg) {
     if (!combo) {
         combo = 1;
     } else {
-        stupid[msg.from.id] = combo + 1;
+        combo = combo + 1;
     }
     var resp = "笨笨"
     if (combo > 4) { var resp = combo + " Combo" }
     if (combo > 20) { var resp = "笨蛋沒有極限" }
     if (combo > 40) { var resp = "你這智障" }
     if (combo > 60) { var resp = combo + " Combo" }
-    jsonfile.writeFileSync('stupid.owo', stupid)
     bot.sendMessage(msg.chat.id, resp, { parse_mode: "markdown", reply_to_message_id: msg.message_id });
+
+    //存檔
+    stupid[msg.from.id] = combo;
+    jsonfile.writeFileSync('stupid.owo', stupid)
 }
 
 function count_bitchhand(msg) {
@@ -151,13 +162,16 @@ function count_bitchhand(msg) {
     if (!combo) {
         combo = 1;
     } else {
-        bitchhand[msg.from.id] = combo + 1;
+        combo = combo + 1;
     }
     var resp = "走開"
     if (combo > 4) { var resp = combo + " Combo" }
     if (combo > 20) { var resp = "走開，你這賤人" }
     if (combo > 40) { var resp = "你這臭 Bitch" }
     if (combo > 60) { var resp = combo + " Combo" }
-    jsonfile.writeFileSync('bitchhand.owo', bitchhand)
     bot.sendMessage(msg.chat.id, resp, { parse_mode: "markdown", reply_to_message_id: msg.message_id });
+
+    //存檔
+    bitchhand[msg.from.id] = combo;
+    jsonfile.writeFileSync('bitchhand.owo', bitchhand)
 }
