@@ -20,21 +20,21 @@ bot.onText(/\/start/, function(msg) {
 bot.onText(/\/help/, function(msg) {
     var chatId = msg.chat.id;
     var helpCommand = [{
-            Command: '/echo',
+            Command: 'echo',
             Description: "重複講話(可用 HTML)",
         },
         {
-            Command: '/addKeyboard',
+            Command: 'addKeyboard',
             Description: "新增鍵盤",
         },
         {
-            Command: '/removeKeyboard',
+            Command: 'removeKeyboard',
             Description: "移除鍵盤",
         },
     ];
     var resp = '';
     for (i = 0; i < helpCommand.length; i = i + 1) {
-        var resp = resp + helpCommand[i].Command + '\n     ' + helpCommand[i].Description + '\n';
+        var resp = resp + '/' + helpCommand[i].Command + '\n     ' + helpCommand[i].Description + '\n';
     }
     bot.sendMessage(chatId, resp);
 });
@@ -42,7 +42,6 @@ bot.onText(/\/help/, function(msg) {
 // 重複講話(HTML)
 bot.onText(/\/echo (.+)/, function(msg, match) {
     var resp = match[1];
-    if (!match[1]) { var resp = "你沒傳訊息"; }
     bot.sendMessage(msg.chat.id, resp, { parse_mode: "HTML", reply_to_message_id: msg.message_id });
 });
 
@@ -75,16 +74,16 @@ bot.onText(/\/removeKeyboard/, function(msg) {
 
 bot.on('message', (msg) => {
     // 將所有傳給機器人的訊息轉到頻道
-    var SendLog2Ch = "<code>[訊息]</code>"
-    "<code>" +
-    "\n 使用者　：" + msg.from.first_name + " @" + msg.from.username +
+    var SendLog2Ch = "<code>[訊息]</code>" +
+        "<code>" +
+        "\n 使用者　：" + msg.from.first_name + " @" + msg.from.username +
         "\n 聊天室　：" + msg.chat.title + " | " + msg.chat.id + " | " + msg.chat.type +
         "\n 訊息編號：" + msg.message_id +
         "\n 發送時間：" + msg.date +
         "\n 訊息文字：" + msg.text +
         "</code>"
-    bot.sendMessage('-1001143743775', SendLog2Ch, { parse_mode: "HTML" })
-        // 當有讀到文字時
+    bot.sendMessage('-1001143743775', SendLog2Ch, { parse_mode: "HTML" });
+    // 當有讀到文字時
     if (msg.text != undefined) {
         // 發 幹 的時候回復
         if (msg.text.toLowerCase().indexOf("幹") === 0) {
