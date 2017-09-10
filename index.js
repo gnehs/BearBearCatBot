@@ -1,12 +1,15 @@
+// 載入
 var token = require('./token.js');
 var TelegramBot = require('node-telegram-bot-api');
 var bot = new TelegramBot(token.botToken, {polling: true});
 
-console.log('機器人啟動成功！')
+// 啟動成功
+bot.sendMessage('-1001127892867', '熊貓貓啟動成功！');
+console.log('熊貓貓啟動成功！')
 
 bot.onText(/\/start/, function (msg) {
     var chatId = msg.chat.id;
-    var resp = '你好';
+    var resp = '哈囉！';
     bot.sendMessage(chatId, resp);
 });
 
