@@ -129,6 +129,6 @@ function count_stupid(id, msg) {
     if (stupid[id] > 4) {
         var resp = stupid[id] + " Combo"
     }
-    fs.writeFile('stupid.owo', JSON.stringify(stupid, null, 4), (err) => { if (err) throw err; });
+    jsonfile.writeFileSync('stupid.owo', stupid)
     bot.sendMessage(msg.chat.id, resp, { parse_mode: "markdown", reply_to_message_id: msg.message_id });
 }
