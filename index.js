@@ -83,13 +83,17 @@ bot.onText(/\/removeKeyboard/, function(msg) {
 });
 
 bot.onText(/\/cleanCombo/, function(msg) {
+    // 將數據設為0
     bitchhand[msg.from.id] = 0;
     stupid[msg.from.id] = 0;
+    //輸出
     bot.sendMessage(msg.chat.id, '紀錄已清除', { reply_to_message_id: msg.message_id });
 });
 bot.onText(/\/viewCombo/, function(msg) {
+    // 若使用者沒有數據，將數據設為0
     if (!bitchhand[msg.from.id]) { bitchhand[msg.from.id] = 0; }
     if (!stupid[msg.from.id]) { stupid[msg.from.id] = 0; }
+    //輸出
     resp = "手賤賤：" + bitchhand[msg.from.id] + "次\n你笨笨：" + stupid[msg.from.id] + "次"
     bot.sendMessage(msg.chat.id, resp, { reply_to_message_id: msg.message_id });
 });
