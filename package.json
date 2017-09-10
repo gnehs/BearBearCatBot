@@ -1,0 +1,27 @@
+{
+  "name": "bearbearcatbot",
+  "version": "1.0.0",
+  "description": "熊貓貓",
+  "main": "index.js",
+  "scripts": {
+    "test": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gnehs/BearBearCatBot.git"
+  },
+  "keywords": [
+    "熊貓貓",
+    "Telegram",
+    "bot"
+  ],
+  "author": "棒棒勝",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/gnehs/BearBearCatBot/issues"
+  },
+  "homepage": "https://github.com/gnehs/BearBearCatBot#readme",
+  "dependencies": {
+    "node-telegram-bot-api": "^0.28.0"
+  }
+}
