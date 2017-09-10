@@ -34,7 +34,7 @@ bot.onText(/\/help/, function(msg) {
             Description: "移除鍵盤",
         },
         {
-            Command: 'cleanhistory',
+            Command: 'cleanCombo',
             Description: "清除手賤賤及笨蛋的 Combo(無法復原)",
         },
     ];
@@ -78,7 +78,7 @@ bot.onText(/\/removeKeyboard/, function(msg) {
     bot.sendMessage(msg.chat.id, '鍵盤已移除', opts);
 });
 
-bot.onText(/\/cleanhistory/, function(msg) {
+bot.onText(/\/cleanCombo/, function(msg) {
     bitchhand[msg.from.id] = 0;
     stupid[msg.from.id] = 0;
     bot.sendMessage(msg.chat.id, '紀錄已清除', { reply_to_message_id: msg.message_id });
@@ -116,10 +116,10 @@ bot.on('message', (msg) => {
             bot.sendMessage(msg.chat.id, "`HTTP /1.1 200 OK.`", { parse_mode: "markdown", reply_to_message_id: msg.message_id });
         }
         if (msg.text.toLowerCase().indexOf('我是笨蛋') === 0) {
-            count_stupid(msg.from.id, msg);
+            count_stupid(msg);
         }
         if (msg.text.toLowerCase().indexOf('我手賤賤') === 0) {
-            bitch_hand(msg.from.id, msg);
+            count_bitchhand(msg);
         }
         if (msg.text == '怕') {
             bot.sendMessage(msg.chat.id, "嚇到吃手手", { parse_mode: "markdown", reply_to_message_id: msg.message_id });
@@ -130,7 +130,8 @@ bot.on('message', (msg) => {
 var stupid = jsonfile.readFileSync('stupid.owo')
 var bitchhand = jsonfile.readFileSync('bitchhand.owo')
 
-function count_stupid(id, msg) {
+function count_stupid(msg) {
+    var id = msg.from.id
     if (!stupid[id]) {
         stupid[id] = 1;
     } else {
@@ -140,11 +141,15 @@ function count_stupid(id, msg) {
     if (stupid[id] > 4) {
         var resp = stupid[id] + " Combo"
     }
+    if (bitchhand[id] > 20) {
+        var resp = "笨蛋沒有極限"
+    }
     jsonfile.writeFileSync('stupid.owo', stupid)
     bot.sendMessage(msg.chat.id, resp, { parse_mode: "markdown", reply_to_message_id: msg.message_id });
 }
 
-function bitch_hand(id, msg) {
+function count_bitchhand(msg) {
+    var id = msg.from.id
     if (!bitchhand[id]) {
         bitchhand[id] = 1;
     } else {
@@ -153,6 +158,12 @@ function bitch_hand(id, msg) {
     var resp = "走開"
     if (bitchhand[id] > 4) {
         var resp = bitchhand[id] + " Combo"
+    }
+    if (bitchhand[id] > 20) {
+        var resp = "走開，你這賤人"
+    }
+    if (bitchhand[id] > 40) {
+        var resp = "你這臭 Bitch"
     }
     jsonfile.writeFileSync('bitchhand.owo', bitchhand)
     bot.sendMessage(msg.chat.id, resp, { parse_mode: "markdown", reply_to_message_id: msg.message_id });
