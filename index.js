@@ -1,4 +1,4 @@
-var token = require('./token.js');
+var token = require('./data/token.js');
 var TelegramBot = require('node-telegram-bot-api');
 var bot = new TelegramBot(token.botToken, {polling: true});
 
