@@ -1,1 +1,1 @@
-exports.botToken = '1111:aabbcc'
+exports.botToken = '111:222aaabbbccc'
