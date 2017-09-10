@@ -82,15 +82,18 @@ bot.onText(/\/removeKeyboard/, function(msg) {
     bot.sendMessage(msg.chat.id, '鍵盤已移除', opts);
 });
 
-bot.onText(/\/viewCombo/, function(msg) {
-    resp = "手賤賤：" + bitchhand[msg.from.id] + "次\n你笨笨：" + stupid[msg.from.id] + "次"
-    bot.sendMessage(msg.chat.id, resp, { reply_to_message_id: msg.message_id });
-});
 bot.onText(/\/cleanCombo/, function(msg) {
     bitchhand[msg.from.id] = 0;
     stupid[msg.from.id] = 0;
     bot.sendMessage(msg.chat.id, '紀錄已清除', { reply_to_message_id: msg.message_id });
 });
+bot.onText(/\/viewCombo/, function(msg) {
+    if (!bitchhand[msg.from.id]) { bitchhand[msg.from.id] = 0; }
+    if (!stupid[msg.from.id]) { stupid[msg.from.id] = 0; }
+    resp = "手賤賤：" + bitchhand[msg.from.id] + "次\n你笨笨：" + stupid[msg.from.id] + "次"
+    bot.sendMessage(msg.chat.id, resp, { reply_to_message_id: msg.message_id });
+});
+
 
 
 bot.on('message', (msg) => {
