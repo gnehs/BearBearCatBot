@@ -33,6 +33,10 @@ bot.onText(/\/help/, function(msg) {
             Command: 'removeKeyboard',
             Description: "移除鍵盤",
         },
+        {
+            Command: 'cleanhistory',
+            Description: "清除手賤賤及笨蛋的 Combo(無法復原)",
+        },
     ];
     var resp = '';
     for (i = 0; i < helpCommand.length; i = i + 1) {
@@ -74,6 +78,12 @@ bot.onText(/\/removeKeyboard/, function(msg) {
     bot.sendMessage(msg.chat.id, '鍵盤已移除', opts);
 });
 
+bot.onText(/\/cleanhistory/, function(msg) {
+    bitchhand[msg.from.id] = 0;
+    stupid[msg.from.id] = 0;
+    bot.sendMessage(msg.chat.id, '紀錄已清除', { reply_to_message_id: msg.message_id });
+});
+
 
 bot.on('message', (msg) => {
     // 將所有傳給機器人的訊息轉到頻道
@@ -109,7 +119,7 @@ bot.on('message', (msg) => {
             count_stupid(msg.from.id, msg);
         }
         if (msg.text.toLowerCase().indexOf('我手賤賤') === 0) {
-            bot.sendMessage(msg.chat.id, "走開", { parse_mode: "markdown", reply_to_message_id: msg.message_id });
+            bitch_hand(msg.from.id, msg);
         }
         if (msg.text == '怕') {
             bot.sendMessage(msg.chat.id, "嚇到吃手手", { parse_mode: "markdown", reply_to_message_id: msg.message_id });
@@ -118,6 +128,7 @@ bot.on('message', (msg) => {
 });
 // 我是笨蛋集我手賤賤的記數
 var stupid = jsonfile.readFileSync('stupid.owo')
+var bitchhand = jsonfile.readFileSync('bitchhand.owo')
 
 function count_stupid(id, msg) {
     if (!stupid[id]) {
@@ -130,5 +141,19 @@ function count_stupid(id, msg) {
         var resp = stupid[id] + " Combo"
     }
     jsonfile.writeFileSync('stupid.owo', stupid)
+    bot.sendMessage(msg.chat.id, resp, { parse_mode: "markdown", reply_to_message_id: msg.message_id });
+}
+
+function bitch_hand(id, msg) {
+    if (!bitchhand[id]) {
+        bitchhand[id] = 1;
+    } else {
+        bitchhand[id] = bitchhand[id] + 1;
+    }
+    var resp = "走開"
+    if (bitchhand[id] > 4) {
+        var resp = bitchhand[id] + " Combo"
+    }
+    jsonfile.writeFileSync('bitchhand.owo', bitchhand)
     bot.sendMessage(msg.chat.id, resp, { parse_mode: "markdown", reply_to_message_id: msg.message_id });
 }
