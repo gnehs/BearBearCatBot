@@ -1,3 +1,1 @@
-exports.botToken = function () {
-    return '11111:aaabbbccc';
-};
+exports.botToken = '1111:aabbcc'
