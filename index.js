@@ -16,6 +16,29 @@ bot.onText(/\/start/, function(msg) {
     bot.sendMessage(chatId, resp);
 });
 
+// /help
+bot.onText(/\/help/, function(msg) {
+    var chatId = msg.chat.id;
+    var helpCommand = [{
+            Command: '/echo',
+            Description: "重複講話(可用 HTML)",
+        },
+        {
+            Command: '/addKeyboard',
+            Description: "新增鍵盤",
+        },
+        {
+            Command: '/removeKeyboard',
+            Description: "移除鍵盤",
+        },
+    ];
+    var resp = '';
+    for (i = 0; i < helpCommand.length; i = i + 1) {
+        var resp = resp + helpCommand[i].Command + '\n     ' + helpCommand[i].Description + '\n';
+    }
+    bot.sendMessage(chatId, resp);
+});
+
 // 重複講話(HTML)
 bot.onText(/\/echo (.+)/, function(msg, match) {
     var resp = match[1];
@@ -52,8 +75,9 @@ bot.onText(/\/removeKeyboard/, function(msg) {
 
 bot.on('message', (msg) => {
     // 將所有傳給機器人的訊息轉到頻道
-    var SendLog2Ch = "<code>[訊息]</code>接收到了來自 " + msg.from.first_name + " @" + msg.from.username + " 的訊息" +
-        "<code>" +
+    var SendLog2Ch = "<code>[訊息]</code>"
+    "<code>" +
+    "\n 使用者　：" + msg.from.first_name + " @" + msg.from.username +
         "\n 聊天室　：" + msg.chat.title + " | " + msg.chat.id + " | " + msg.chat.type +
         "\n 訊息編號：" + msg.message_id +
         "\n 發送時間：" + msg.date +
