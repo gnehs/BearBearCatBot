@@ -1,6 +1,8 @@
 // 載入
-var token = require('./token.js');
-var TelegramBot = require('node-telegram-bot-api');
+var fs = require('fs'); //檔案系統
+var token = require('./token.js'); //token
+var TelegramBot = require('node-telegram-bot-api'); //api
+var jsonfile = require('jsonfile')
 var bot = new TelegramBot(token.botToken, { polling: true });
 
 // 啟動成功
@@ -51,7 +53,8 @@ bot.onText(/\/addKeyboard/, function(msg) {
     const opts = {
         reply_markup: JSON.stringify({
             keyboard: [
-                ['歡迎光臨貼圖群']
+                ['我是笨蛋'],
+                ['我手賤賤']
             ],
             resize_keyboard: true,
             one_time_keyboard: true,
@@ -102,5 +105,30 @@ bot.on('message', (msg) => {
         if (msg.text.toLowerCase().indexOf("喵") === 0) {
             bot.sendMessage(msg.chat.id, "`HTTP /1.1 200 OK.`", { parse_mode: "markdown", reply_to_message_id: msg.message_id });
         }
+        if (msg.text.toLowerCase().indexOf('我是笨蛋') === 0) {
+            count_stupid(msg.from.id, msg);
+        }
+        if (msg.text.toLowerCase().indexOf('我手賤賤') === 0) {
+            bot.sendMessage(msg.chat.id, "走開", { parse_mode: "markdown", reply_to_message_id: msg.message_id });
+        }
+        if (msg.text == '怕') {
+            bot.sendMessage(msg.chat.id, "嚇到吃手手", { parse_mode: "markdown", reply_to_message_id: msg.message_id });
+        }
     }
 });
+// 我是笨蛋集我手賤賤的記數
+var stupid = jsonfile.readFileSync('stupid.owo')
+
+function count_stupid(id, msg) {
+    if (!stupid[id]) {
+        stupid[id] = 1;
+    } else {
+        stupid[id] = stupid[id] + 1;
+    }
+    var resp = "笨笨"
+    if (stupid[id] > 4) {
+        var resp = stupid[id] + " Combo"
+    }
+    fs.writeFile('stupid.owo', JSON.stringify(stupid, null, 4), (err) => { if (err) throw err; });
+    bot.sendMessage(msg.chat.id, resp, { parse_mode: "markdown", reply_to_message_id: msg.message_id });
+}
