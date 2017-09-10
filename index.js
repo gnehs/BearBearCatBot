@@ -48,3 +48,36 @@ bot.onText(/\/removeKeyboard/, function(msg) {
     };
     bot.sendMessage(msg.chat.id, '鍵盤已移除', opts);
 });
+
+
+bot.on('message', (msg) => {
+    // 將所有傳給機器人的訊息轉到頻道
+    var SendLog2Ch = "<code>[訊息]</code>接收到了來自 " + msg.from.first_name + " @" + msg.from.username + " 的訊息" +
+        "<code>" +
+        "\n 聊天室　：" + msg.chat.title + " | " + msg.chat.id + " | " + msg.chat.type +
+        "\n 訊息編號：" + msg.message_id +
+        "\n 發送時間：" + msg.date +
+        "\n 訊息文字：" + msg.text +
+        "</code>"
+    bot.sendMessage('-1001143743775', SendLog2Ch, { parse_mode: "HTML" })
+        // 當有讀到文字時
+    if (msg.text != undefined) {
+        // 發 幹 的時候回復
+        if (msg.text.toLowerCase().indexOf("幹") === 0) {
+            bot.sendMessage(msg.chat.id, "<i>QQ</i>", { parse_mode: "HTML", reply_to_message_id: msg.message_id });
+        }
+        // 發 Ping 的時候回復
+        if (msg.text.toLowerCase().indexOf("ping") === 0) {
+            bot.sendMessage(msg.chat.id, "<b>PONG</b>", { parse_mode: "HTML", reply_to_message_id: msg.message_id });
+        }
+        if (msg.text.toLowerCase().indexOf("ㄈㄓ") === 0) {
+            bot.sendMessage(msg.chat.id, "油", { reply_to_message_id: msg.message_id });
+        }
+        if (msg.text.toLowerCase().indexOf("晚安") === 0) {
+            bot.sendMessage(msg.chat.id, msg.from.first_name + "晚安❤️", { reply_to_message_id: msg.message_id });
+        }
+        if (msg.text.toLowerCase().indexOf("喵") === 0) {
+            bot.sendMessage(msg.chat.id, "`HTTP /1.1 200 OK.`", { parse_mode: "markdown", reply_to_message_id: msg.message_id });
+        }
+    }
+});
