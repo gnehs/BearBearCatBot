@@ -1,1 +1,0 @@
-var token = '111111:aaaabbbbcccc';
