@@ -90,7 +90,13 @@ bot.onText(/\/cleanCombo/, function(msg) {
     bot.sendMessage(msg.chat.id, '紀錄已清除', { reply_to_message_id: msg.message_id });
 });
 bot.onText(/\/viewCombo/, function(msg) {
-    if (msg.reply_to_message != undefined) { var userID = msg.reply_to_message.from.id; var userNAME = msg.reply_to_message.from.first_name } else { var userID = msg.from.id; var userNAME = msg.from.first_name }
+    if (!msg.reply_to_message) {
+        var userID = msg.from.id;
+        var userNAME = msg.from.first_name;
+    } else {
+        var userID = msg.reply_to_message.from.id;
+        var userNAME = msg.reply_to_message.from.first_name;
+    }
     // 若使用者沒有數據，將數據設為0
     if (!bitchhand[userID]) { bitchhand[userID] = 0; }
     if (!stupid[userID]) { stupid[userID] = 0; }
@@ -154,10 +160,10 @@ function count_stupid(msg) {
         combo = combo + 1;
     }
     var resp = "笨笨"
-    if (combo > 4) { var resp = combo + " Combo" }
-    if (combo > 20) { var resp = "笨蛋沒有極限" + "\n" + combo + " Combo" }
-    if (combo > 40) { var resp = "你這智障" + "\n" + combo + " Combo" }
-    if (combo > 60) { var resp = combo + " Combo" }
+    if (combo > 4) { var resp = "[" + combo + " Combo]" }
+    if (combo > 20) { var resp = "笨蛋沒有極限" + "\n[" + combo + " Combo]" }
+    if (combo > 40) { var resp = "你這智障" + "\n[" + combo + " Combo]" }
+    if (combo > 60) { var resp = "[" + combo + " Combo]" }
     bot.sendMessage(msg.chat.id, resp, { parse_mode: "markdown", reply_to_message_id: msg.message_id });
 
     //存檔
@@ -173,10 +179,10 @@ function count_bitchhand(msg) {
         combo = combo + 1;
     }
     var resp = "走開"
-    if (combo > 4) { var resp = combo + " Combo" }
-    if (combo > 20) { var resp = "走開，你這賤人" + "\n" + combo + " Combo" }
-    if (combo > 40) { var resp = "你這臭 Bitch" + "\n" + combo + " Combo" }
-    if (combo > 60) { var resp = combo + " Combo" }
+    if (combo > 4) { var resp = "[" + combo + " Combo]" }
+    if (combo > 20) { var resp = "走開，你這賤人" + "\n[" + combo + " Combo]" }
+    if (combo > 40) { var resp = "你這臭 Bitch" + "\n[" + combo + " Combo]" }
+    if (combo > 60) { var resp = "[" + combo + " Combo]" }
     bot.sendMessage(msg.chat.id, resp, { parse_mode: "markdown", reply_to_message_id: msg.message_id });
 
     //存檔
