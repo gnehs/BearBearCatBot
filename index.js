@@ -154,8 +154,8 @@ function count_stupid(msg) {
     }
     var resp = "笨笨"
     if (combo > 4) { var resp = combo + " Combo" }
-    if (combo > 20) { var resp = "笨蛋沒有極限" }
-    if (combo > 40) { var resp = "你這智障" }
+    if (combo > 20) { var resp = "笨蛋沒有極限" + "\n" + combo + " Combo" }
+    if (combo > 40) { var resp = "你這智障" + "\n" + combo + " Combo" }
     if (combo > 60) { var resp = combo + " Combo" }
     bot.sendMessage(msg.chat.id, resp, { parse_mode: "markdown", reply_to_message_id: msg.message_id });
 
@@ -173,8 +173,8 @@ function count_bitchhand(msg) {
     }
     var resp = "走開"
     if (combo > 4) { var resp = combo + " Combo" }
-    if (combo > 20) { var resp = "走開，你這賤人" }
-    if (combo > 40) { var resp = "你這臭 Bitch" }
+    if (combo > 20) { var resp = "走開，你這賤人" + "\n" + combo + " Combo" }
+    if (combo > 40) { var resp = "你這臭 Bitch" + "\n" + combo + " Combo" }
     if (combo > 60) { var resp = combo + " Combo" }
     bot.sendMessage(msg.chat.id, resp, { parse_mode: "markdown", reply_to_message_id: msg.message_id });
 
