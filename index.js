@@ -197,7 +197,9 @@ function count_bitchhand(msg) {
 }
 //存檔
 var writeFile = function() {
-    jsonfile.writeFileSync('bitchhand.owo', bitchhand)
-    jsonfile.writeFileSync('stupid.owo', stupid)
+    if (stupid != jsonfile.readFileSync('stupid.owo') || bitchhand != jsonfile.readFileSync('bitchhand.owo')) {
+        jsonfile.writeFileSync('bitchhand.owo', bitchhand)
+        jsonfile.writeFileSync('stupid.owo', stupid)
+    }
 };
 setInterval(writeFile, 8000);
