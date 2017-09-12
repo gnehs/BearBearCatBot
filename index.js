@@ -55,6 +55,10 @@ bot.onText(/\/help/, function(msg) {
             Command: 'dayoff',
             Description: "查看行政院人事行政總處是否公布放假",
         },
+        {
+            Command: 'clearDayoff',
+            Description: "清除 /dayoff 的快取(Admin)",
+        },
     ];
     var resp = '';
     for (i in helpCommand) {
@@ -70,26 +74,44 @@ bot.onText(/\/echo (.+)/, function(msg, match) {
 });
 
 // 放假
+dayoffTimeOut = false
 bot.onText(/\/dayoff/, function(msg) {
-    request({
-        url: "https://www.dgpa.gov.tw/typh/daily/nds.html",
-        method: "GET",
-        rejectUnauthorized: false
-    }, function(e, r, b) {
-        if (e || !b) { return; }
-        var $ = cheerio.load(b);
-        var resp = '';
-        var titles = $("body>table:nth-child(2)>tbody>tr>td:nth-child(1)>font");
-        var status = $("body>table:nth-child(2)>tbody>tr>td:nth-child(2)>font");
-        var time = $("td[headers=\"T_PA date\"]>p>font").text();
-        for (var i = 0; i < titles.length; i++) {
-            var resp = resp + '*' + $(titles[i]).text() + '*：' + $(status[i]).text() + '\n';
-        }
-        var resp = resp + '---\n`最新情報以` [行政院人事行政總處](https://www.dgpa.gov.tw/typh/daily/nds.html) `公告為主`\n' + time;
-        bot.sendMessage(msg.chat.id, resp, { parse_mode: "markdown", reply_to_message_id: msg.message_id });
-        /* e: 錯誤代碼 */
-        /* b: 傳回的資料內容 */
-    });
+    if (dayoffTimeOut) {
+        bot.sendMessage(msg.chat.id, dayoff + ' _已快取_', { parse_mode: "markdown", reply_to_message_id: msg.message_id });
+    } else {
+        request({
+            url: "https://www.dgpa.gov.tw/typh/daily/nds.html",
+            method: "GET",
+            rejectUnauthorized: false
+        }, function(e, r, b) {
+            if (e || !b) { return; }
+            var $ = cheerio.load(b);
+            var resp = '';
+            var titles = $("body>table:nth-child(2)>tbody>tr>td:nth-child(1)>font");
+            var status = $("body>table:nth-child(2)>tbody>tr>td:nth-child(2)>font");
+            var time = $("td[headers=\"T_PA date\"]>p>font").text();
+            for (var i = 0; i < titles.length; i++) {
+                var resp = resp + '*' + $(titles[i]).text() + '*：' + $(status[i]).text() + '\n';
+            }
+            dayoff = resp + '---\n`最新情報以` [行政院人事行政總處](https://www.dgpa.gov.tw/typh/daily/nds.html) `公告為主`\n' + time;
+            bot.sendMessage(msg.chat.id, dayoff, { parse_mode: "markdown", reply_to_message_id: msg.message_id });
+            /* e: 錯誤代碼 */
+            /* b: 傳回的資料內容 */
+            dayoffTimeOut = true
+        });
+
+    }
+});
+// 清除颱風快取
+bot.onText(/\/clearDayoff/, function(msg) {
+    if (msg.from.username == 'gnehs_OwO') {
+        dayoffTimeOut = false;
+        var resp = '已清除快取';
+    } else {
+        count_bitchhand(msg);
+        var resp = '你也是很棒棒喔';
+    }
+    bot.sendMessage(msg.chat.id, resp, { reply_to_message_id: msg.message_id });
 });
 
 
