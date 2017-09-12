@@ -1,15 +1,21 @@
 // 載入
 var fs = require('fs'); //檔案系統
-var token = require('./token.js'); //token
-var TelegramBot = require('node-telegram-bot-api'); //api
 var jsonfile = require('jsonfile')
-var bot = new TelegramBot(token.botToken, { polling: true });
+var botSecret = jsonfile.readFileSync('./secret.json'); // bot 資訊
+var TelegramBot = require('node-telegram-bot-api'); //api
+var bot = new TelegramBot(botSecret.botToken, { polling: true });
+
+// log
+function log(message, parse_mode = "markdown") {
+    console.log(message);
+    for (i in botSecret.logChannelId) {
+        bot.sendMessage(botSecret.logChannelId[i], message, { parse_mode: parse_mode });
+    }
+}
 
 // 啟動成功
 var start_time = new Date().getHours() + ":" + new Date().getMinutes() + ":" + new Date().getSeconds(); // 機器人啟動時間
-console.log("[系統]熊貓貓在 " + start_time + " 時啟動成功");
-bot.sendMessage('-1001127892867', "`[系統]`熊貓貓在 " + start_time + " 時啟動成功", { parse_mode: "markdown" });
-bot.sendMessage('-1001143743775', "`[系統]`熊貓貓在 " + start_time + " 時啟動成功", { parse_mode: "markdown" });
+log("`[系統]`熊貓貓在 " + start_time + " 時啟動成功");
 
 // /start
 bot.onText(/\/start/, function(msg) {
