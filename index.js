@@ -159,6 +159,7 @@ bot.on('message', (msg) => {
 // 我是笨蛋集我手賤賤的記數
 var stupid = jsonfile.readFileSync('stupid.owo')
 var bitchhand = jsonfile.readFileSync('bitchhand.owo')
+jsonedit = false;
 
 function count_stupid(msg) {
     var combo = stupid[msg.from.id]
@@ -176,6 +177,8 @@ function count_stupid(msg) {
     bot.sendMessage(msg.chat.id, resp, { reply_to_message_id: msg.message_id });
     // 寫入字串
     stupid[msg.from.id] = combo;
+    //存檔偵測
+    jsonedit = true;
 }
 
 function count_bitchhand(msg) {
@@ -194,12 +197,16 @@ function count_bitchhand(msg) {
     bot.sendMessage(msg.chat.id, resp, { reply_to_message_id: msg.message_id });
     // 寫入字串
     bitchhand[msg.from.id] = combo;
+    //存檔偵測
+    jsonedit = true;
 }
 //存檔
 var writeFile = function() {
-    if (stupid != jsonfile.readFileSync('stupid.owo') || bitchhand != jsonfile.readFileSync('bitchhand.owo')) {
-        jsonfile.writeFileSync('bitchhand.owo', bitchhand)
-        jsonfile.writeFileSync('stupid.owo', stupid)
+    if (jsonedit) {
+        jsonfile.writeFileSync('bitchhand.owo', bitchhand);
+        jsonfile.writeFileSync('stupid.owo', stupid);
+        //存檔偵測
+        jsonedit = false;
     }
 };
 setInterval(writeFile, 8000);
