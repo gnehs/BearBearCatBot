@@ -35,7 +35,7 @@ bot.onText(/\/help/, function(msg) {
         },
         {
             Command: 'viewCombo',
-            Description: "查看手賤賤及笨蛋的 Combo",
+            Description: "查看手賤賤及笨蛋的 Combo，回復別人訊息可取得該使用者的 Combo",
         },
         {
             Command: 'cleanCombo',
@@ -164,7 +164,7 @@ function count_stupid(msg) {
     if (combo > 20) { var resp = "笨蛋沒有極限" + "\n[" + combo + " Combo]" }
     if (combo > 40) { var resp = "你這智障" + "\n[" + combo + " Combo]" }
     if (combo > 60) { var resp = "[" + combo + " Combo]" }
-    bot.sendMessage(msg.chat.id, resp, { parse_mode: "markdown", reply_to_message_id: msg.message_id });
+    bot.sendMessage(msg.chat.id, resp, { reply_to_message_id: msg.message_id });
 
     //存檔
     stupid[msg.from.id] = combo;
@@ -183,7 +183,7 @@ function count_bitchhand(msg) {
     if (combo > 20) { var resp = "走開，你這賤人" + "\n[" + combo + " Combo]" }
     if (combo > 40) { var resp = "你這臭 Bitch" + "\n[" + combo + " Combo]" }
     if (combo > 60) { var resp = "[" + combo + " Combo]" }
-    bot.sendMessage(msg.chat.id, resp, { parse_mode: "markdown", reply_to_message_id: msg.message_id });
+    bot.sendMessage(msg.chat.id, resp, { reply_to_message_id: msg.message_id });
 
     //存檔
     bitchhand[msg.from.id] = combo;
