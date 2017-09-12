@@ -51,6 +51,10 @@ bot.onText(/\/help/, function(msg) {
             Command: 'cleanCombo',
             Description: "清除手賤賤及笨蛋的 Combo(無法復原)",
         },
+        {
+            Command: 'dayoff',
+            Description: "查看行政院人事行政總處是否公布放假",
+        },
     ];
     var resp = '';
     for (i in helpCommand) {
