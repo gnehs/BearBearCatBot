@@ -4,6 +4,8 @@ var jsonfile = require('jsonfile')
 var botSecret = jsonfile.readFileSync('./secret.json'); // bot 資訊
 var TelegramBot = require('node-telegram-bot-api'); //api
 var bot = new TelegramBot(botSecret.botToken, { polling: true });
+var request = require("request"); // HTTP 客戶端輔助工具
+var cheerio = require("cheerio"); // Server 端的 jQuery 實作
 
 // log
 function log(message, parse_mode = "markdown") {
@@ -61,6 +63,27 @@ bot.onText(/\/help/, function(msg) {
 bot.onText(/\/echo (.+)/, function(msg, match) {
     var resp = match[1];
     bot.sendMessage(msg.chat.id, resp, { parse_mode: "HTML", reply_to_message_id: msg.message_id });
+});
+
+// 放假
+bot.onText(/\/dayoff/, function(msg) {
+    request({
+        url: "http://www.dgpa.gov.tw/typh/daily/nds.html",
+        method: "GET",
+        rejectUnauthorized: false
+    }, function(e, r, b) {
+        if (e || !b) { return; }
+        var $ = cheerio.load(b);
+        var resp = '';
+        var titles = $("body>table:nth-child(2)>tbody>tr>td:nth-child(1)>font");
+        var status = $("body>table:nth-child(2)>tbody>tr>td:nth-child(2)>font");
+        for (var i = 0; i < titles.length; i++) {
+            var resp = resp + '*' + $(titles[i]).text() + '* / ' + $(status[i]).text() + '\n';
+        }
+        bot.sendMessage(msg.chat.id, resp, { parse_mode: "markdown", reply_to_message_id: msg.message_id });
+        /* e: 錯誤代碼 */
+        /* b: 傳回的資料內容 */
+    });
 });
 
 
