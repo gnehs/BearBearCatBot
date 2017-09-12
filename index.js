@@ -77,10 +77,11 @@ bot.onText(/\/dayoff/, function(msg) {
         var resp = '';
         var titles = $("body>table:nth-child(2)>tbody>tr>td:nth-child(1)>font");
         var status = $("body>table:nth-child(2)>tbody>tr>td:nth-child(2)>font");
+        var time = $("td[headers=\"T_PA date\"]>p>font").text();
         for (var i = 0; i < titles.length; i++) {
-            var resp = resp + '*' + $(titles[i]).text() + '* / ' + $(status[i]).text() + '\n';
+            var resp = resp + '*' + $(titles[i]).text() + '*：' + $(status[i]).text() + '\n';
         }
-        var resp = resp + '---\n`最新情報以` [行政院人事行政總處](https://www.dgpa.gov.tw/typh/daily/nds.html) `公告為主`';
+        var resp = resp + '---\n`最新情報以` [行政院人事行政總處](https://www.dgpa.gov.tw/typh/daily/nds.html) `公告為主`\n' + time;
         bot.sendMessage(msg.chat.id, resp, { parse_mode: "markdown", reply_to_message_id: msg.message_id });
         /* e: 錯誤代碼 */
         /* b: 傳回的資料內容 */
