@@ -2,7 +2,7 @@
 熊貓貓，靈魂永生不死
 
 ## 如何啟動熊貓貓
-在 `secret.json`　裡面填入底下資訊
+新增 `secret.json` 文件並裡面填入底下資訊
 ```js
 {
     "botToken": "YOUR_BOT_TOKEN_HERE",
