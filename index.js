@@ -51,7 +51,7 @@ bot.onText(/\/help/, function(msg) {
         },
     ];
     var resp = '';
-    for (i = 0; i < helpCommand.length; i = i + 1) {
+    for (i in helpCommand) {
         var resp = resp + '/' + helpCommand[i].Command + '\n     ' + helpCommand[i].Description + '\n';
     }
     bot.sendMessage(chatId, resp);
@@ -168,10 +168,11 @@ function count_stupid(msg) {
         combo = combo + 1;
     }
     var resp = "笨笨"
-    if (combo > 4) { var resp = "[" + combo + " Combo]" }
-    if (combo > 20) { var resp = "笨蛋沒有極限" + "\n[" + combo + " Combo]" }
-    if (combo > 40) { var resp = "你這智障" + "\n[" + combo + " Combo]" }
-    if (combo > 60) { var resp = "[" + combo + " Combo]" }
+    var combo_count = "\n[" + combo + " Combo]";
+    if (combo > 4) { var resp = combo_count }
+    if (combo > 20) { var resp = "笨蛋沒有極限" + combo_count }
+    if (combo > 40) { var resp = "你這智障" + combo_count }
+    if (combo > 60) { var resp = combo_count }
     bot.sendMessage(msg.chat.id, resp, { reply_to_message_id: msg.message_id });
 
     //存檔
@@ -187,10 +188,11 @@ function count_bitchhand(msg) {
         combo = combo + 1;
     }
     var resp = "走開"
-    if (combo > 4) { var resp = "[" + combo + " Combo]" }
-    if (combo > 20) { var resp = "走開，你這賤人" + "\n[" + combo + " Combo]" }
-    if (combo > 40) { var resp = "你這臭 Bitch" + "\n[" + combo + " Combo]" }
-    if (combo > 60) { var resp = "[" + combo + " Combo]" }
+    var combo_count = "\n[" + combo + " Combo]";
+    if (combo > 4) { var resp = combo_count }
+    if (combo > 20) { var resp = "走開，你這賤人" + combo_count }
+    if (combo > 40) { var resp = "你這臭 Bitch" + combo_count }
+    if (combo > 60) { var resp = combo_count }
     bot.sendMessage(msg.chat.id, resp, { reply_to_message_id: msg.message_id });
 
     //存檔
