@@ -174,10 +174,8 @@ function count_stupid(msg) {
     if (combo > 40) { var resp = "你這智障" + combo_count }
     if (combo > 60) { var resp = combo_count }
     bot.sendMessage(msg.chat.id, resp, { reply_to_message_id: msg.message_id });
-
-    //存檔
+    // 寫入字串
     stupid[msg.from.id] = combo;
-    jsonfile.writeFileSync('stupid.owo', stupid)
 }
 
 function count_bitchhand(msg) {
@@ -194,8 +192,12 @@ function count_bitchhand(msg) {
     if (combo > 40) { var resp = "你這臭 Bitch" + combo_count }
     if (combo > 60) { var resp = combo_count }
     bot.sendMessage(msg.chat.id, resp, { reply_to_message_id: msg.message_id });
-
-    //存檔
+    // 寫入字串
     bitchhand[msg.from.id] = combo;
-    jsonfile.writeFileSync('bitchhand.owo', bitchhand)
 }
+//存檔
+var writeFile = function() {
+    jsonfile.writeFileSync('bitchhand.owo', bitchhand)
+    jsonfile.writeFileSync('stupid.owo', stupid)
+};
+setInterval(writeFile, 5000);
