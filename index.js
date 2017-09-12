@@ -68,7 +68,7 @@ bot.onText(/\/echo (.+)/, function(msg, match) {
 // 放假
 bot.onText(/\/dayoff/, function(msg) {
     request({
-        url: "http://www.dgpa.gov.tw/typh/daily/nds.html",
+        url: "https://www.dgpa.gov.tw/typh/daily/nds.html",
         method: "GET",
         rejectUnauthorized: false
     }, function(e, r, b) {
@@ -80,6 +80,7 @@ bot.onText(/\/dayoff/, function(msg) {
         for (var i = 0; i < titles.length; i++) {
             var resp = resp + '*' + $(titles[i]).text() + '* / ' + $(status[i]).text() + '\n';
         }
+        var resp = resp + '---\n`最新情報以` [行政院人事行政總處](https://www.dgpa.gov.tw/typh/daily/nds.html) `公告為主`';
         bot.sendMessage(msg.chat.id, resp, { parse_mode: "markdown", reply_to_message_id: msg.message_id });
         /* e: 錯誤代碼 */
         /* b: 傳回的資料內容 */
