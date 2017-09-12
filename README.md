@@ -10,6 +10,6 @@
 } 
 ```
 
-`logChannelId` 是一個陣列，可自行刪減擴充
+`logChannelId` 是一個陣列，可自行刪減擴充，或是你直接幹掉也可以
 
 輸入 `node index.js` 完成啟動

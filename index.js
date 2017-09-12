@@ -8,8 +8,10 @@ var bot = new TelegramBot(botSecret.botToken, { polling: true });
 // log
 function log(message, parse_mode = "markdown") {
     console.log(message);
-    for (i in botSecret.logChannelId) {
-        bot.sendMessage(botSecret.logChannelId[i], message, { parse_mode: parse_mode });
+    if (botSecret.logChannelId != undefined) {
+        for (i in botSecret.logChannelId) {
+            bot.sendMessage(botSecret.logChannelId[i], message, { parse_mode: parse_mode });
+        }
     }
 }
 
