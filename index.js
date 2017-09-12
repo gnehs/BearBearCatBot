@@ -200,4 +200,4 @@ var writeFile = function() {
     jsonfile.writeFileSync('bitchhand.owo', bitchhand)
     jsonfile.writeFileSync('stupid.owo', stupid)
 };
-setInterval(writeFile, 5000);
+setInterval(writeFile, 8000);
