@@ -105,7 +105,7 @@ bot.onText(/\/dayoff/, function(msg) {
             for (var i = 0; i < titles.length; i++) {
                 var resp = resp + '*' + $(titles[i]).text() + '*：' + $(status[i]).text() + '\n';
             }
-            dayoff = resp + '---\n`詳細及最新情報以` [行政院人事行政總處](https://www.dgpa.gov.tw/typh/daily/nds.html) `公告為主`\n' + time;
+            dayoff = resp + '---\n`詳細及最新情報以` [行政院人事行政總處](goo.gl/GjmZnR) `公告為主`\n' + time;
             bot.sendMessage(msg.chat.id, dayoff, { parse_mode: "markdown", reply_to_message_id: msg.message_id });
             /* e: 錯誤代碼 */
             /* b: 傳回的資料內容 */
