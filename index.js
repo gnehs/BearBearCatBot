@@ -28,11 +28,21 @@ bot.onText(/\/start/, function(msg) {
     bot.sendMessage(chatId, resp);
 });
 
+// /about
+bot.onText(/\/about/, function(msg) {
+    var resp = `早安，熊貓貓 Desu
+熊貓貓是測試用的，所以不定時開機喔！
+---
+GitHub / git.io/BearBearCatBot
+開發者  / git.io/gnehs`;
+    bot.sendMessage(msg.chat.id, resp, { parse_mode: "markdown", reply_to_message_id: msg.message_id });
+});
+
 // /help
 bot.onText(/\/help/, function(msg) {
     var chatId = msg.chat.id;
     var helpCommand = [{
-            Command: 'echo',
+            Command: 'echo [幹話]',
             Description: "重複講話(可用 HTML)",
         },
         {
@@ -56,8 +66,16 @@ bot.onText(/\/help/, function(msg) {
             Description: "查看行政院人事行政總處是否公布放假",
         },
         {
+            Command: 'about',
+            Description: "關於熊貓貓",
+        },
+        {
             Command: 'clearDayoff',
             Description: "清除 /dayoff 的快取(Admin)",
+        },
+        {
+            Command: 'leave [Chat ID]',
+            Description: "離開對話(Admin)",
         },
     ];
     var resp = '';
