@@ -2,7 +2,7 @@
 var fs = require('fs'); //檔案系統
 var jsonfile = require('jsonfile'); //讀 json 的咚咚
 var botSecret = jsonfile.readFileSync('./secret.json'); // bot 資訊
-var block_user = jsonfile.readFileSync('./block_user.json'); // 封鎖清單
+//var block_user = jsonfile.readFileSync('block_user.owo'); // 封鎖清單
 var TelegramBot = require('node-telegram-bot-api'); //api
 var bot = new TelegramBot(botSecret.botToken, { polling: true });
 var request = require("request"); // HTTP 客戶端輔助工具
@@ -16,12 +16,27 @@ function log(message, parse_mode = "markdown") {
         }
     }
 }
+/*
 // 檢查是否封鎖
 function checkBlock(userID) {
     if (block_user[userID] != undefined) {
         return;
     }
 }
+// 封鎖
+function Block(userID) {
+    var combo = block_user[userID];
+    if (!combo) {
+        combo = 'true';
+    } else {
+        combo = 'false';
+    }
+    // 寫入字串
+    var block_user[userID] = combo;
+    //存檔偵測
+    jsonedit = true;
+}
+*/
 
 // 啟動成功
 var start_time = new Date().getHours() + ":" + new Date().getMinutes() + ":" + new Date().getSeconds(); // 機器人啟動時間
@@ -296,7 +311,7 @@ var writeFile = function() {
     if (jsonedit) {
         jsonfile.writeFileSync('bitchhand.owo', bitchhand);
         jsonfile.writeFileSync('stupid.owo', stupid);
-        jsonfile.writeFileSync('block_user.json', block_user);
+        jsonfile.writeFileSync('block_user.owo', block_user);
         //存檔偵測
         jsonedit = false;
     }
