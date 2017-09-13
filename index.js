@@ -1,12 +1,12 @@
 // 載入
 var fs = require('fs'); //檔案系統
-var jsonfile = require('jsonfile')
+var jsonfile = require('jsonfile'); //讀 json 的咚咚
 var botSecret = jsonfile.readFileSync('./secret.json'); // bot 資訊
+var block_user = jsonfile.readFileSync('./block_user.json'); // 封鎖清單
 var TelegramBot = require('node-telegram-bot-api'); //api
 var bot = new TelegramBot(botSecret.botToken, { polling: true });
 var request = require("request"); // HTTP 客戶端輔助工具
 var cheerio = require("cheerio"); // Server 端的 jQuery 實作
-
 // log
 function log(message, parse_mode = "markdown") {
     console.log(message);
@@ -14,6 +14,12 @@ function log(message, parse_mode = "markdown") {
         for (i in botSecret.logChannelId) {
             bot.sendMessage(botSecret.logChannelId[i], message, { parse_mode: parse_mode });
         }
+    }
+}
+// 檢查是否封鎖
+function checkBlock(userID) {
+    if (block_user[userID] != undefined) {
+        return;
     }
 }
 
@@ -144,14 +150,12 @@ bot.onText(/\/clearDayoff/, function(msg) {
     bot.sendMessage(msg.chat.id, resp, { reply_to_message_id: msg.message_id });
 });
 
-
 //鍵盤新增跟移除
 bot.onText(/\/addKeyboard/, function(msg) {
     const opts = {
         reply_markup: JSON.stringify({
             keyboard: [
-                ['我是笨蛋'],
-                ['我手賤賤']
+                ['我是笨蛋', '我手賤賤']
             ],
             resize_keyboard: true,
             one_time_keyboard: true,
@@ -213,6 +217,10 @@ bot.on('message', (msg) => {
         if (msg.text.toLowerCase().indexOf("幹") === 0) {
             bot.sendMessage(msg.chat.id, "<i>QQ</i>", { parse_mode: "HTML", reply_to_message_id: msg.message_id });
         }
+        /*if (msg.text.toLowerCase() == '/block') {
+            jsonedit = true;
+            bot.sendMessage(msg.chat.id, '已封鎖' + msg.from.first_name, { parse_mode: "HTML", reply_to_message_id: msg.message_id });
+        }*/
         // 發 Ping 的時候回復
         if (msg.text.toLowerCase().indexOf("ping") === 0) {
             bot.sendMessage(msg.chat.id, "<b>PONG</b>", { parse_mode: "HTML", reply_to_message_id: msg.message_id });
@@ -255,6 +263,7 @@ function count_stupid(msg) {
     if (combo > 20) { var resp = "笨蛋沒有極限" + combo_count }
     if (combo > 40) { var resp = "你這智障" + combo_count }
     if (combo > 60) { var resp = combo_count }
+    if (combo > 100) { var resp = "幹你機掰人" + combo_count }
     bot.sendMessage(msg.chat.id, resp, { reply_to_message_id: msg.message_id });
     // 寫入字串
     stupid[msg.from.id] = combo;
@@ -275,6 +284,7 @@ function count_bitchhand(msg) {
     if (combo > 20) { var resp = "走開，你這賤人" + combo_count }
     if (combo > 40) { var resp = "你這臭 Bitch" + combo_count }
     if (combo > 60) { var resp = combo_count }
+    if (combo > 100) { var resp = "幹你機掰人" + combo_count }
     bot.sendMessage(msg.chat.id, resp, { reply_to_message_id: msg.message_id });
     // 寫入字串
     bitchhand[msg.from.id] = combo;
@@ -286,6 +296,7 @@ var writeFile = function() {
     if (jsonedit) {
         jsonfile.writeFileSync('bitchhand.owo', bitchhand);
         jsonfile.writeFileSync('stupid.owo', stupid);
+        jsonfile.writeFileSync('block_user.json', block_user);
         //存檔偵測
         jsonedit = false;
     }
