@@ -73,6 +73,18 @@ bot.onText(/\/echo (.+)/, function(msg, match) {
     bot.sendMessage(msg.chat.id, resp, { parse_mode: "HTML", reply_to_message_id: msg.message_id });
 });
 
+// Leave
+bot.onText(/\/leave (.+)/, function(msg, match) {
+    if (msg.from.username == 'gnehs_OwO') {
+        bot.leaveChat(match[1])
+        var resp = '好了';
+    } else {
+        count_bitchhand(msg);
+        var resp = '你也是很棒棒喔';
+    }
+    bot.sendMessage(msg.chat.id, resp, { reply_to_message_id: msg.message_id });
+});
+
 // 放假
 dayoffTimeOut = false
 bot.onText(/\/dayoff/, function(msg) {
