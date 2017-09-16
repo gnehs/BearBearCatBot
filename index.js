@@ -80,6 +80,10 @@ bot.onText(/\/help/, function(msg) {
             Command: 'leave [Chat ID]',
             Description: "離開對話(Admin)",
         },
+        {
+            Command: 'today',
+            Description: "今日",
+        },
     ];
     var resp = '';
     for (i in helpCommand) {
@@ -126,6 +130,30 @@ bot.onText(/\/dayoff/, function(msg) {
         bot.sendMessage(msg.chat.id, dayoff, { parse_mode: "markdown", reply_to_message_id: msg.message_id });
         /* e: 錯誤代碼 */
         /* b: 傳回的資料內容 */
+    });
+});
+
+// 今日
+bot.onText(/\/today/, function(msg) {
+    request({
+        url: "http://www.cwb.gov.tw/V7/knowledge/",
+        method: "GET"
+    }, function(e, r, b) {
+        if (e || !b) { return; }
+        var $ = cheerio.load(b);
+        var resp = '🔼今日月象\n';
+        var titles = $(".BoxContent>.earthshockinfo>.BoxTable02>tbody>tr>td:nth-child(1)");
+        var description = $(".BoxContent>.earthshockinfo>.BoxTable02>tbody>tr>td:nth-child(2)");
+        var img = 'http://www.cwb.gov.tw' + $(".BoxContent>.earthshockinfo>.BoxTable02>tbody>tr:nth-child(6)>td:nth-child(2)>img").attr('src');
+        for (var i = 0; i < titles.length; i++) {
+            var description_i = $(description[i]).text()
+            if (i != 5)
+                if (description_i != '#') var resp = resp + $(titles[i]).text() + ' / ' + description_i + '\n';
+        }
+        today = resp + '資料來源 /  goo.gl/vS3LS3';
+        /* e: 錯誤代碼 */
+        /* b: 傳回的資料內容 */
+        bot.sendPhoto(msg.chat.id, img, { caption: today, parse_mode: "markdown", reply_to_message_id: msg.message_id });
     });
 });
 // 清除颱風快取
