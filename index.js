@@ -107,33 +107,26 @@ bot.onText(/\/leave (.+)/, function(msg, match) {
 });
 
 // 放假
-dayoffTimeOut = false
 bot.onText(/\/dayoff/, function(msg) {
-    if (dayoffTimeOut) {
-        bot.sendMessage(msg.chat.id, dayoff + ' _已快取_', { parse_mode: "markdown", reply_to_message_id: msg.message_id });
-    } else {
-        request({
-            url: "https://www.dgpa.gov.tw/typh/daily/nds.html",
-            method: "GET",
-            rejectUnauthorized: false
-        }, function(e, r, b) {
-            if (e || !b) { return; }
-            var $ = cheerio.load(b);
-            var resp = '';
-            var titles = $("body>table:nth-child(2)>tbody>tr>td:nth-child(1)>font:nth-child(1)");
-            var status = $("body>table:nth-child(2)>tbody>tr>td:nth-child(2)>font:nth-child(1)");
-            var time = $("td[headers=\"T_PA date\"]>p>font").text();
-            for (var i = 0; i < titles.length; i++) {
-                var resp = resp + '*' + $(titles[i]).text() + '*：' + $(status[i]).text() + '\n';
-            }
-            dayoff = resp + '---\n`詳細及最新情報以` [行政院人事行政總處](goo.gl/GjmZnR) `公告為主`\n' + time;
-            bot.sendMessage(msg.chat.id, dayoff, { parse_mode: "markdown", reply_to_message_id: msg.message_id });
-            /* e: 錯誤代碼 */
-            /* b: 傳回的資料內容 */
-            dayoffTimeOut = true
-        });
-
-    }
+    request({
+        url: "https://www.dgpa.gov.tw/typh/daily/nds.html",
+        method: "GET",
+        rejectUnauthorized: false
+    }, function(e, r, b) {
+        if (e || !b) { return; }
+        var $ = cheerio.load(b);
+        var resp = '';
+        var titles = $("body>table:nth-child(2)>tbody>tr>td:nth-child(1)>font:nth-child(1)");
+        var status = $("body>table:nth-child(2)>tbody>tr>td:nth-child(2)>font:nth-child(1)");
+        var time = $("td[headers=\"T_PA date\"]>p>font").text();
+        for (var i = 0; i < titles.length; i++) {
+            var resp = resp + '*' + $(titles[i]).text() + '*：' + $(status[i]).text() + '\n';
+        }
+        dayoff = resp + '---\n`詳細及最新情報以` [行政院人事行政總處](goo.gl/GjmZnR) `公告為主`\n' + time;
+        bot.sendMessage(msg.chat.id, dayoff, { parse_mode: "markdown", reply_to_message_id: msg.message_id });
+        /* e: 錯誤代碼 */
+        /* b: 傳回的資料內容 */
+    });
 });
 // 清除颱風快取
 bot.onText(/\/clearDayoff/, function(msg) {
