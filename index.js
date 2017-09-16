@@ -73,10 +73,6 @@ bot.onText(/\/help/, function(msg) {
             Description: "關於熊貓貓",
         },
         {
-            Command: 'clearDayoff',
-            Description: "清除 /dayoff 的快取(Admin)",
-        },
-        {
             Command: 'leave [Chat ID]',
             Description: "離開對話(Admin)",
         },
@@ -141,7 +137,7 @@ bot.onText(/\/today/, function(msg) {
     }, function(e, r, b) {
         if (e || !b) { return; }
         var $ = cheerio.load(b);
-        var resp = '🔼今日月象\n';
+        var resp = '';
         var titles = $(".BoxContent>.earthshockinfo>.BoxTable02>tbody>tr>td:nth-child(1)");
         var description = $(".BoxContent>.earthshockinfo>.BoxTable02>tbody>tr>td:nth-child(2)");
         var img = 'http://www.cwb.gov.tw' + $(".BoxContent>.earthshockinfo>.BoxTable02>tbody>tr:nth-child(6)>td:nth-child(2)>img").attr('src');
@@ -155,17 +151,6 @@ bot.onText(/\/today/, function(msg) {
         /* b: 傳回的資料內容 */
         bot.sendPhoto(msg.chat.id, img, { caption: today, parse_mode: "markdown", reply_to_message_id: msg.message_id });
     });
-});
-// 清除颱風快取
-bot.onText(/\/clearDayoff/, function(msg) {
-    if (msg.from.username == 'gnehs_OwO') {
-        dayoffTimeOut = false;
-        var resp = '已清除快取';
-    } else {
-        count_bitchhand(msg);
-        var resp = '你也是很棒棒喔';
-    }
-    bot.sendMessage(msg.chat.id, resp, { reply_to_message_id: msg.message_id });
 });
 
 //鍵盤新增跟移除
