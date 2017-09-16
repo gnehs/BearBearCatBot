@@ -9,6 +9,7 @@ var cheerio = require("cheerio"); // Server 端的 jQuery 實作
 var stupid = jsonfile.readFileSync('stupid.owo'); // 我是笨蛋的記數
 var bitchhand = jsonfile.readFileSync('bitchhand.owo'); // 我手賤賤的記數
 jsonedit = false; //設定檔案是否被編輯
+
 // log
 function log(message, parse_mode = "markdown") {
     console.log(message);
@@ -288,7 +289,6 @@ var writeFile = function() {
     if (jsonedit) {
         jsonfile.writeFileSync('bitchhand.owo', bitchhand);
         jsonfile.writeFileSync('stupid.owo', stupid);
-        //jsonfile.writeFileSync('block_user.owo', block_user);
         //存檔偵測
         jsonedit = false;
     }
