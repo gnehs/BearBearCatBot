@@ -113,6 +113,8 @@ bot.onText(/\/dayoff/, function(msg) {
         method: "GET",
         rejectUnauthorized: false
     }, function(e, r, b) {
+        /* e: 錯誤代碼 */
+        /* b: 傳回的資料內容 */
         if (e || !b) { return; }
         var $ = cheerio.load(b);
         var resp = '';
@@ -122,10 +124,8 @@ bot.onText(/\/dayoff/, function(msg) {
         for (var i = 0; i < titles.length; i++) {
             var resp = resp + '*' + $(titles[i]).text() + '*：' + $(status[i]).text() + '\n';
         }
-        dayoff = resp + '---\n`詳細及最新情報以` [行政院人事行政總處](goo.gl/GjmZnR) `公告為主`\n' + time;
+        var dayoff = resp + '---\n`詳細及最新情報以` [行政院人事行政總處](goo.gl/GjmZnR) `公告為主`\n' + time;
         bot.sendMessage(msg.chat.id, dayoff, { parse_mode: "markdown", reply_to_message_id: msg.message_id });
-        /* e: 錯誤代碼 */
-        /* b: 傳回的資料內容 */
     });
 });
 
@@ -135,6 +135,8 @@ bot.onText(/\/today/, function(msg) {
         url: "http://www.cwb.gov.tw/V7/knowledge/",
         method: "GET"
     }, function(e, r, b) {
+        /* e: 錯誤代碼 */
+        /* b: 傳回的資料內容 */
         if (e || !b) { return; }
         var $ = cheerio.load(b);
         var resp = '';
@@ -147,8 +149,6 @@ bot.onText(/\/today/, function(msg) {
                 if (description_i != '#') var resp = resp + $(titles[i]).text() + ' / ' + description_i + '\n';
         }
         today = resp + '資料來源 /  goo.gl/vS3LS3';
-        /* e: 錯誤代碼 */
-        /* b: 傳回的資料內容 */
         bot.sendPhoto(msg.chat.id, img, { caption: today, parse_mode: "markdown", reply_to_message_id: msg.message_id });
     });
 });
