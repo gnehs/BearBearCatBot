@@ -1,5 +1,6 @@
 // 載入
 var fs = require('fs'); //檔案系統
+var sharp = require('sharp'); //圖片處理
 var jsonfile = require('jsonfile'); //讀 json 的咚咚
 var botSecret = jsonfile.readFileSync('./secret.json'); // bot 資訊
 var TelegramBot = require('node-telegram-bot-api'); //api
@@ -151,6 +152,42 @@ bot.onText(/\/today/, function(msg) {
         today = resp + '資料來源 /  goo.gl/vS3LS3';
         bot.sendPhoto(msg.chat.id, img, { caption: today, parse_mode: "markdown", reply_to_message_id: msg.message_id });
     });
+});
+
+// 今日
+bot.onText(/\/resize/, function(msg) {
+    var resp = '未取得來源圖片';
+    if (msg.reply_to_message.photo) {
+        fileId = msg.reply_to_message.photo.pop().file_id;
+    } else if (msg.document && msg.document.thumb) {
+        fileId = msg.reply_to_message.document.file_id;
+    }
+    if (fileId) {
+        console.log(fileId)
+        console.log(bot.getFileLink(fileId))
+        var url = 'https://api.telegram.org/file/bot357327597:AAFtiBVGbOrVF54ahVjA5kC_y6cvnE0XSfQ/'
+            /*
+            var output = 'Output.png'
+                // 获取上传的图片，进行裁切
+            fs.exists(imagePath, function(exists) {
+                if (exists) {
+                    sharp(imagePath)
+                        .resize(512)
+                        .sharpen()
+                        .quality(100)
+                        .toFile(output, function(err) {
+                            if (err) throw err;
+                            console.log('Completed!');
+                            // 头像保存成功，返回成功消息给前端
+                            var resp = '轉換成功';
+                        });
+                } else {
+                    var resp = '轉換失敗，請重傳一次試試';
+                }
+            });*/
+    }
+
+    bot.sendMessage(msg.chat.id, resp, { parse_mode: "markdown", reply_to_message_id: msg.message_id });
 });
 
 //鍵盤新增跟移除
