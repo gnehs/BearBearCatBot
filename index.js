@@ -11,6 +11,11 @@ var stupid = jsonfile.readFileSync('stupid.owo'); // 我是笨蛋的記數
 var bitchhand = jsonfile.readFileSync('bitchhand.owo'); // 我手賤賤的記數
 jsonedit = false; //設定檔案是否被編輯
 
+bot.getMe().then(function(me) {
+    // 啟動成功
+    var start_time = new Date().getHours() + ":" + new Date().getMinutes() + ":" + new Date().getSeconds(); // 機器人啟動時間
+    log("`[系統]`" + me.first_name + ' @' + me.username + " 在 " + start_time + " 時啟動成功");
+});
 // log
 function log(message, parse_mode = "markdown") {
     console.log(message);
@@ -20,10 +25,6 @@ function log(message, parse_mode = "markdown") {
         }
     }
 }
-
-// 啟動成功
-var start_time = new Date().getHours() + ":" + new Date().getMinutes() + ":" + new Date().getSeconds(); // 機器人啟動時間
-log("`[系統]`熊貓貓在 " + start_time + " 時啟動成功");
 
 // /start
 bot.onText(/\/start/, function(msg) {
@@ -237,7 +238,6 @@ bot.onText(/\/viewCombo/, function(msg) {
     resp = userNAME + " 的 Combo 數\n手賤賤：" + bitchhand[userID] + "次\n你笨笨：" + stupid[userID] + "次"
     bot.sendMessage(msg.chat.id, resp, { reply_to_message_id: msg.message_id });
 });
-
 
 
 bot.on('message', (msg) => {
