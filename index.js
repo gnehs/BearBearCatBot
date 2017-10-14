@@ -282,6 +282,27 @@ bot.on('message', (msg) => {
         }
         if (msg.text == '怕') {
             bot.sendMessage(msg.chat.id, "嚇到吃手手", { parse_mode: "markdown", reply_to_message_id: msg.message_id });
+        } // 辨識是否 Tag 正確
+        if (msg.text.toLowerCase().indexOf("#询问") === 0) {
+            var text = chineseConv.tify(msg.text);
+            bot.sendMessage(msg.chat.id, text, { reply_to_message_id: msg.message_id });
+        }
+        if (msg.text.toLowerCase().indexOf("#詢問#") === 0) {
+            var send = "<b>錯誤 - Tag 無法被正常偵測</b>" +
+                "\n<a href='http://telegra.ph/%E5%A6%82%E4%BD%95%E6%AD%A3%E7%A2%BA%E7%9A%84-Tag-07-25'>查看正確的 #Tag 方式</a>";
+            bot.sendMessage(msg.chat.id, send, { parse_mode: "html", reply_to_message_id: msg.message_id });
+        }
+        if (msg.text.indexOf("#") === 0) {
+            if (msg.text.match(/#/ig).length !== msg.entities.reduce((n, i) => (i.type === 'hashtag') ? n + 1 : n, 0)) {
+                var send = "<b>錯誤 - Tag 無法被正常偵測</b>" +
+                    "\n<a href='http://telegra.ph/%E5%A6%82%E4%BD%95%E6%AD%A3%E7%A2%BA%E7%9A%84-Tag-07-25'>查看正確的 #Tag 方式</a>";
+                if (msg.entities.reduce((n, i) => (i.type === 'bold') ? n + 1 : n, 0) > 0) {
+                    var send = "<b>錯誤 - Tag 因為粗體而無法被正常偵測</b>" +
+                        "\n若您是 iOS 使用者，可能是粗體尚未關閉導致的" +
+                        "\n<a href='https://blog.gnehs.net/telegram-ios-tag'>查看如何解決 iOS Tag 失敗的問題</a>";
+                }
+                bot.sendMessage(msg.chat.id, send, { parse_mode: "html", reply_to_message_id: msg.message_id })
+            }
         }
     }
 });
