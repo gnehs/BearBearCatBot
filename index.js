@@ -1,7 +1,7 @@
 ﻿// 載入
 var fs = require('fs'); //檔案系統
 var jsonfile = require('jsonfile'); //讀 json 的咚咚
-var botSecret = jsonfile.readFileSync('./secret.json'); // bot 資訊
+var botSecret = jsonfile.readFileSync('secret.json'); // bot 資訊
 var TelegramBot = require('node-telegram-bot-api'); //api
 var bot = new TelegramBot(botSecret.botToken, { polling: true });
 var request = require("request"); // HTTP 客戶端輔助工具
@@ -13,6 +13,7 @@ jsonedit = false; //設定檔案是否被編輯
 bot.getMe().then(function(me) {
     // 啟動成功
     var start_time = new Date().getHours() + ":" + new Date().getMinutes() + ":" + new Date().getSeconds(); // 機器人啟動時間
+    botUsername = me.username
     log("`[系統]`" + me.first_name + ' @' + me.username + " 在 " + start_time + " 時啟動成功");
 });
 // log
@@ -31,7 +32,6 @@ bot.onText(/\/start/, function(msg) {
     var resp = '哈囉！這裡是熊貓貓';
     bot.sendMessage(chatId, resp);
 });
-
 // /about
 bot.onText(/\/about/, function(msg) {
     var resp = `早安，熊貓貓 Desu
@@ -86,7 +86,7 @@ bot.onText(/\/help/, function(msg) {
     for (i in helpCommand) {
         var resp = resp + '/' + helpCommand[i].Command + '\n     ' + helpCommand[i].Description + '\n';
     }
-    bot.sendMessage(chatId, resp);
+    bot.sendMessage(chatId, resp, { reply_to_message_id: msg.message_id });
 });
 
 // 重複講話(HTML)
@@ -154,6 +154,28 @@ bot.onText(/\/today/, function(msg) {
     });
 });
 
+// 今日
+bot.onText(/\/baha/, function(msg) {
+    request({
+        url: "https://ani.gamer.com.tw/",
+        method: "GET"
+    }, function(e, r, b) {
+        /* e: 錯誤代碼 */
+        /* b: 傳回的資料內容 */
+        if (e || !b) { return; }
+        var $ = cheerio.load(b);
+        var resp = '';
+        var titles = $(".newanime-title");
+        var ep = $(".newanime .newanime-vol");
+        var link = $(".newanime__content").attr('href');
+        for (var i = 0; i < 10; i++) {
+            var resp = resp + '[' + $(titles[i]).text() + '](' + link + ")  " + $(ep[i]).text() + '\n';
+        }
+        var baha = resp;
+        bot.sendMessage(msg.chat.id, baha, { parse_mode: "markdown", reply_to_message_id: msg.message_id });
+    });
+});
+
 //鍵盤新增跟移除
 bot.onText(/\/addKeyboard/, function(msg) {
     const opts = {
@@ -202,24 +224,32 @@ bot.onText(/\/viewCombo/, function(msg) {
     bot.sendMessage(msg.chat.id, resp, { reply_to_message_id: msg.message_id });
 });
 
-
+bot.on('polling_error', (error) => {
+    console.log(error.code); // => 'EFATAL'
+});
 bot.on('message', (msg) => {
     // 將所有傳給機器人的訊息轉到頻道
-    var msgtext = msg.text
-    if (msg.text == undefined && msg.sticker != undefined) {
-        msgtext = msg.sticker.set_name
-    } else if (msg.text == undefined && new_chat_members != undefined) {
-        msgtext = "新成員: @" + msg.new_chat_members.username + " " + msg.new_chat_members.first_name
-    } else if (msg.text == undefined) {
-        msgtext = "無法辨識之訊息"
+    msgTitle = "訊息文字："
+    msgText = msg.text
+    if (msg.new_chat_members != undefined) {
+        msgTitle = "新成員:"
+        msgText = "@" + msg.new_chat_members.username + " " + msg.new_chat_members.first_name
+    }
+    if (msg.text == undefined) {
+        msgText = "無法辨識之訊息"
+    }
+    if (msg.sticker) {
+        console.log(msg.sticker)
+        msgTitle = "貼圖："
+        msgText = msg.sticker.set_name + msg.sticker.emoji
     }
     var SendLog2Ch = "<code>[訊息]</code>" +
         "<code>" +
-        "\n 使用者　：" + msg.from.first_name + " @" + msg.from.username +
-        "\n 聊天室　：" + msg.chat.title + " | " + msg.chat.id + " | " + msg.chat.type +
+        "\n 使用者：" + msg.from.first_name + " @" + msg.from.username +
+        "\n 聊天室：" + msg.chat.title + " | " + msg.chat.id + " | " + msg.chat.type +
         "\n 訊息編號：" + msg.message_id +
         "\n 發送時間：" + msg.date +
-        "\n 訊息文字：" + msg.text + "</code>" +
+        "\n " + msgTitle + msgText + "</code>" +
         "\n#UserName_" + msg.from.username + " #Name_" + msg.from.first_name + " #UserID_" + msg.from.id
     msg.from.id
     bot.sendMessage('-1001143743775', SendLog2Ch, { parse_mode: "HTML" });
@@ -246,10 +276,10 @@ bot.on('message', (msg) => {
         if (msg.text.toLowerCase().indexOf("喵") === 0) {
             bot.sendMessage(msg.chat.id, "`HTTP /1.1 200 OK.`", { parse_mode: "markdown", reply_to_message_id: msg.message_id });
         }
-        if (msg.text.toLowerCase().indexOf('我是笨蛋') === 0 && msg.reply_to_message.from.username == "BearCatCatBot") {
+        if (msg.text.toLowerCase().indexOf('我是笨蛋') === 0 && msg.reply_to_message.from.username == botUsername) {
             count_stupid(msg);
         }
-        if (msg.text.toLowerCase().indexOf('我手賤賤') === 0 && msg.reply_to_message.from.username == "BearCatCatBot") {
+        if (msg.text.toLowerCase().indexOf('我手賤賤') === 0 && msg.reply_to_message.from.username == botUsername) {
             count_bitchhand(msg);
         }
         if (msg.text == '怕') {

@@ -1,1 +1,2 @@
-nodemon /Volumes/Data/文件/GitHub/BearBearCatBot/index.js
+cd /Volumes/Data/文件/GitHub/BearBearCatBot/
+nodemon index.js
