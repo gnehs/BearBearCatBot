@@ -1,0 +1,1 @@
+nodemon /Volumes/Data/文件/GitHub/BearBearCatBot/index.js

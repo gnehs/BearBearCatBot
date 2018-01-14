@@ -1,6 +1,5 @@
-// 載入
+﻿// 載入
 var fs = require('fs'); //檔案系統
-var sharp = require('sharp'); //圖片處理
 var jsonfile = require('jsonfile'); //讀 json 的咚咚
 var botSecret = jsonfile.readFileSync('./secret.json'); // bot 資訊
 var TelegramBot = require('node-telegram-bot-api'); //api
@@ -155,42 +154,6 @@ bot.onText(/\/today/, function(msg) {
     });
 });
 
-// 今日
-bot.onText(/\/resize/, function(msg) {
-    var resp = '未取得來源圖片';
-    if (msg.reply_to_message.photo) {
-        fileId = msg.reply_to_message.photo.pop().file_id;
-    } else if (msg.document && msg.document.thumb) {
-        fileId = msg.reply_to_message.document.file_id;
-    }
-    if (fileId) {
-        console.log(fileId)
-        console.log(bot.getFileLink(fileId))
-        var url = 'https://api.telegram.org/file/bot357327597:AAFtiBVGbOrVF54ahVjA5kC_y6cvnE0XSfQ/'
-            /*
-            var output = 'Output.png'
-                // 获取上传的图片，进行裁切
-            fs.exists(imagePath, function(exists) {
-                if (exists) {
-                    sharp(imagePath)
-                        .resize(512)
-                        .sharpen()
-                        .quality(100)
-                        .toFile(output, function(err) {
-                            if (err) throw err;
-                            console.log('Completed!');
-                            // 头像保存成功，返回成功消息给前端
-                            var resp = '轉換成功';
-                        });
-                } else {
-                    var resp = '轉換失敗，請重傳一次試試';
-                }
-            });*/
-    }
-
-    bot.sendMessage(msg.chat.id, resp, { parse_mode: "markdown", reply_to_message_id: msg.message_id });
-});
-
 //鍵盤新增跟移除
 bot.onText(/\/addKeyboard/, function(msg) {
     const opts = {
@@ -242,14 +205,23 @@ bot.onText(/\/viewCombo/, function(msg) {
 
 bot.on('message', (msg) => {
     // 將所有傳給機器人的訊息轉到頻道
+    var msgtext = msg.text
+    if (msg.text == undefined && msg.sticker != undefined) {
+        msgtext = msg.sticker.set_name
+    } else if (msg.text == undefined && new_chat_members != undefined) {
+        msgtext = "新成員: @" + msg.new_chat_members.username + " " + msg.new_chat_members.first_name
+    } else if (msg.text == undefined) {
+        msgtext = "無法辨識之訊息"
+    }
     var SendLog2Ch = "<code>[訊息]</code>" +
         "<code>" +
         "\n 使用者　：" + msg.from.first_name + " @" + msg.from.username +
         "\n 聊天室　：" + msg.chat.title + " | " + msg.chat.id + " | " + msg.chat.type +
         "\n 訊息編號：" + msg.message_id +
         "\n 發送時間：" + msg.date +
-        "\n 訊息文字：" + msg.text +
-        "</code>"
+        "\n 訊息文字：" + msg.text + "</code>" +
+        "\n#UserName_" + msg.from.username + " #Name_" + msg.from.first_name + " #UserID_" + msg.from.id
+    msg.from.id
     bot.sendMessage('-1001143743775', SendLog2Ch, { parse_mode: "HTML" });
     // 當有讀到文字時
     if (msg.text != undefined) {
@@ -274,15 +246,16 @@ bot.on('message', (msg) => {
         if (msg.text.toLowerCase().indexOf("喵") === 0) {
             bot.sendMessage(msg.chat.id, "`HTTP /1.1 200 OK.`", { parse_mode: "markdown", reply_to_message_id: msg.message_id });
         }
-        if (msg.text.toLowerCase().indexOf('我是笨蛋') === 0) {
+        if (msg.text.toLowerCase().indexOf('我是笨蛋') === 0 && msg.reply_to_message.from.username == "BearCatCatBot") {
             count_stupid(msg);
         }
-        if (msg.text.toLowerCase().indexOf('我手賤賤') === 0) {
+        if (msg.text.toLowerCase().indexOf('我手賤賤') === 0 && msg.reply_to_message.from.username == "BearCatCatBot") {
             count_bitchhand(msg);
         }
         if (msg.text == '怕') {
             bot.sendMessage(msg.chat.id, "嚇到吃手手", { parse_mode: "markdown", reply_to_message_id: msg.message_id });
-        } // 辨識是否 Tag 正確
+        }
+        // 辨識是否 Tag 正確
         if (msg.text.toLowerCase().indexOf("#询问") === 0) {
             var text = chineseConv.tify(msg.text);
             bot.sendMessage(msg.chat.id, text, { reply_to_message_id: msg.message_id });
