@@ -8,7 +8,10 @@ var request = require("request"); // HTTP 客戶端輔助工具
 var cheerio = require("cheerio"); // Server 端的 jQuery 實作
 var stupid = jsonfile.readFileSync('stupid.owo'); // 我是笨蛋的記數
 var bitchhand = jsonfile.readFileSync('bitchhand.owo'); // 我手賤賤的記數
+groupID = "-1001127892867" || "-1001098976262"
+console.log(groupID)
 jsonedit = false; //設定檔案是否被編輯
+msgtodel = '';
 
 bot.getMe().then(function(me) {
     // 啟動成功
@@ -25,7 +28,6 @@ function log(message, parse_mode = "markdown") {
         }
     }
 }
-
 // /start
 bot.onText(/\/start/, function(msg) {
     var chatId = msg.chat.id;
@@ -84,7 +86,7 @@ bot.onText(/\/help/, function(msg) {
     ];
     var resp = '';
     for (i in helpCommand) {
-        var resp = resp + '/' + helpCommand[i].Command + '\n     ' + helpCommand[i].Description + '\n';
+        var resp = resp + '/' + helpCommand[i].Command + '\n⭐️' + helpCommand[i].Description + '\n';
     }
     bot.sendMessage(chatId, resp, { reply_to_message_id: msg.message_id });
 });
@@ -167,9 +169,9 @@ bot.onText(/\/baha/, function(msg) {
         var resp = '';
         var titles = $(".newanime-title");
         var ep = $(".newanime .newanime-vol");
-        var link = $(".newanime__content").attr('href');
+        var link = $(".newanime__content");
         for (var i = 0; i < 10; i++) {
-            var resp = resp + '[' + $(titles[i]).text() + '](' + link + ")  " + $(ep[i]).text() + '\n';
+            var resp = resp + '[' + $(titles[i]).text() + '](' + $(link[i]).attr('href') + ")  " + $(ep[i]).text() + '\n';
         }
         var baha = resp;
         bot.sendMessage(msg.chat.id, baha, { parse_mode: "markdown", reply_to_message_id: msg.message_id });
@@ -255,47 +257,58 @@ bot.on('message', (msg) => {
     bot.sendMessage('-1001143743775', SendLog2Ch, { parse_mode: "HTML" });
     // 當有讀到文字時
     if (msg.text != undefined) {
-        // 發 幹 的時候回復
-        if (msg.text.toLowerCase().indexOf("幹") === 0) {
+        let msgText = msg.text.toLowerCase()
+            // 發 幹 的時候回復
+        if (msgText.indexOf("幹") === 0) {
             bot.sendMessage(msg.chat.id, "<i>QQ</i>", { parse_mode: "HTML", reply_to_message_id: msg.message_id });
         }
-        /*if (msg.text.toLowerCase() == '/block') {
+        /*if (msgText == '/block') {
             jsonedit = true;
             bot.sendMessage(msg.chat.id, '已封鎖' + msg.from.first_name, { parse_mode: "HTML", reply_to_message_id: msg.message_id });
         }*/
         // 發 Ping 的時候回復
-        if (msg.text.toLowerCase().indexOf("ping") === 0) {
+        if (msgText.indexOf("ping") === 0) {
             bot.sendMessage(msg.chat.id, "<b>PONG</b>", { parse_mode: "HTML", reply_to_message_id: msg.message_id });
         }
-        if (msg.text.toLowerCase().indexOf("ㄈㄓ") === 0) {
+        if (msgText.indexOf("貼圖") > -1) {
+            if (msgText.indexOf("請問") > -1 || msgText.indexOf("求") > -1 || msgText.indexOf("有") > -1) {
+                bot.sendMessage(msg.chat.id, "詢問或發佈貼圖時請使用標籤，這樣才能被正確索引\n像是 `#詢問 #妖嬌美麗的恐龍 #會飛的`\n*＊本功能測試中，誤報請私* [@gnehs_OwO](https://t.me/gnehs_OwO) ＊", { parse_mode: "markdown", reply_to_message_id: msg.message_id, disable_web_page_preview: true });
+            }
+        }
+        if (msgText.indexOf("ㄈㄓ") === 0) {
             bot.sendMessage(msg.chat.id, "油", { reply_to_message_id: msg.message_id });
         }
-        if (msg.text.toLowerCase().indexOf("晚安") === 0) {
+        if (msgText.indexOf("晚安") === 0) {
             bot.sendMessage(msg.chat.id, msg.from.first_name + "晚安❤️", { reply_to_message_id: msg.message_id });
         }
-        if (msg.text.toLowerCase().indexOf("喵") === 0) {
+        if (msgText.indexOf("喵") === 0) {
             bot.sendMessage(msg.chat.id, "`HTTP /1.1 200 OK.`", { parse_mode: "markdown", reply_to_message_id: msg.message_id });
         }
-        if (msg.text.toLowerCase().indexOf('我是笨蛋') === 0 && msg.reply_to_message.from.username == botUsername) {
+        if (msgText.indexOf('我是笨蛋') === 0 && msg.reply_to_message.from.username == botUsername) {
             count_stupid(msg);
         }
-        if (msg.text.toLowerCase().indexOf('我手賤賤') === 0 && msg.reply_to_message.from.username == botUsername) {
+        if (msgText.indexOf('我手賤賤') === 0 && msg.reply_to_message.from.username == botUsername) {
             count_bitchhand(msg);
         }
         if (msg.text == '怕') {
             bot.sendMessage(msg.chat.id, "嚇到吃手手", { parse_mode: "markdown", reply_to_message_id: msg.message_id });
         }
         // 辨識是否 Tag 正確
-        if (msg.text.toLowerCase().indexOf("#询问") === 0) {
+        if (msgText.indexOf("#询问") === 0) {
             var text = chineseConv.tify(msg.text);
             bot.sendMessage(msg.chat.id, text, { reply_to_message_id: msg.message_id });
         }
-        if (msg.text.toLowerCase().indexOf("#詢問#") === 0) {
+        if (msgText.indexOf("#詢問#") > -1) {
             var send = "<b>錯誤 - Tag 無法被正常偵測</b>" +
                 "\n<a href='http://telegra.ph/%E5%A6%82%E4%BD%95%E6%AD%A3%E7%A2%BA%E7%9A%84-Tag-07-25'>查看正確的 #Tag 方式</a>";
             bot.sendMessage(msg.chat.id, send, { parse_mode: "html", reply_to_message_id: msg.message_id });
         }
-        if (msg.text.indexOf("#") === 0) {
+        if (msg.text.indexOf("＃詢問") > -1) {
+            var send = "<b>錯誤 - Tag 無法被正常偵測</b>" +
+                "\n您的輸入設定似乎被設為全形，請換成半形後再試試";
+            bot.sendMessage(msg.chat.id, send, { parse_mode: "html", reply_to_message_id: msg.message_id });
+        }
+        if (msg.text.indexOf("#") > -1) {
             if (msg.text.match(/#/ig).length !== msg.entities.reduce((n, i) => (i.type === 'hashtag') ? n + 1 : n, 0)) {
                 var send = "<b>錯誤 - Tag 無法被正常偵測</b>" +
                     "\n<a href='http://telegra.ph/%E5%A6%82%E4%BD%95%E6%AD%A3%E7%A2%BA%E7%9A%84-Tag-07-25'>查看正確的 #Tag 方式</a>";
