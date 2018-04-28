@@ -9,9 +9,9 @@ var cheerio = require("cheerio"); // Server 端的 jQuery 實作
 var stupid = jsonfile.readFileSync('stupid.owo'); // 我是笨蛋的記數
 var bitchhand = jsonfile.readFileSync('bitchhand.owo'); // 我手賤賤的記數
 groupID = "-1001127892867" || "-1001098976262"
-console.log(groupID)
 jsonedit = false; //設定檔案是否被編輯
 msgtodel = '';
+bahaNoif = '';
 
 bot.getMe().then(function(me) {
     // 啟動成功
@@ -44,6 +44,39 @@ GitHub / git.io/BearBearCatBot
     bot.sendMessage(msg.chat.id, resp, { parse_mode: "markdown", reply_to_message_id: msg.message_id });
 });
 
+// ㄅㄏ更新通知
+// 定時發送
+var bulletin_send = function() {
+    request({
+        url: "https://ani.gamer.com.tw/",
+        method: "GET"
+    }, function(e, r, b) {
+        /* e: 錯誤代碼 */
+        /* b: 傳回的資料內容 */
+        if (e || !b) { return; }
+        var $ = cheerio.load(b);
+        var resp = '';
+        var titles = $(".newanime-title");
+        var ep = $(".newanime .newanime-vol");
+        var link = $(".newanime__content");
+        if (bahaNoif != $(link[0]).attr('href')) {
+            for (var i = 0; i < 3; i++) {
+                var aniEp = $(ep[i]).text().match(/\d+/);
+                var aniEp = (aniEp < 10 ? '⭐️E0' + aniEp : '⭐️E' + aniEp)
+                console.log(aniEp)
+                var resp = resp + aniEp + '[' + ' ' + $(titles[i]).text() + '](' + $(link[i]).attr('href') + ")" + '\n';
+            }
+            var baha = resp;
+            bot.sendMessage(groupID, '`~ㄅㄏ動畫瘋更新菌~`\n' + baha, { parse_mode: "markdown", disable_web_page_preview: true });
+            bahaNoif = $(link[0]).attr('href')
+        } else {
+            console.log(bahaNoif)
+                //bot.sendMessage(groupID, '沒更新喔', { parse_mode: "markdown" });
+        }
+    });
+
+};
+setInterval(bulletin_send, 1000 * 6); //20min
 // /help
 bot.onText(/\/help/, function(msg) {
     var chatId = msg.chat.id;
@@ -88,7 +121,10 @@ bot.onText(/\/help/, function(msg) {
     for (i in helpCommand) {
         var resp = resp + '/' + helpCommand[i].Command + '\n⭐️' + helpCommand[i].Description + '\n';
     }
-    bot.sendMessage(chatId, resp, { reply_to_message_id: msg.message_id });
+    bot.sendMessage(chatId, resp, {
+        reply_to_message_id: msg.message_id,
+        disable_web_page_preview: true
+    });
 });
 
 // 重複講話(HTML)
