@@ -2,5 +2,4 @@
 /secret.json
 secret.json
 secret.json
-*.json
-.*
+._*
