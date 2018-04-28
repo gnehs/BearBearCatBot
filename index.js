@@ -59,19 +59,15 @@ var bulletin_send = function() {
         var titles = $(".newanime-title");
         var ep = $(".newanime .newanime-vol");
         var link = $(".newanime__content");
-        if (bahaNoif != $(link[0]).attr('href')) {
+        if (bahaNoif != $(link[0]).attr('href')) { //有更新才發
             for (var i = 0; i < 3; i++) {
                 var aniEp = $(ep[i]).text().match(/\d+/);
                 var aniEp = (aniEp < 10 ? '⭐️E0' + aniEp : '⭐️E' + aniEp)
-                console.log(aniEp)
                 var resp = resp + aniEp + '[' + ' ' + $(titles[i]).text() + '](' + $(link[i]).attr('href') + ")" + '\n';
             }
             var baha = resp;
             bot.sendMessage(groupID, '`~ㄅㄏ動畫瘋更新菌~`\n' + baha, { parse_mode: "markdown", disable_web_page_preview: true });
             bahaNoif = $(link[0]).attr('href')
-        } else {
-            console.log(bahaNoif)
-                //bot.sendMessage(groupID, '沒更新喔', { parse_mode: "markdown" });
         }
     });
 
