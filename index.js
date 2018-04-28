@@ -8,10 +8,11 @@ var request = require("request"); // HTTP 客戶端輔助工具
 var cheerio = require("cheerio"); // Server 端的 jQuery 實作
 var stupid = jsonfile.readFileSync('stupid.owo'); // 我是笨蛋的記數
 var bitchhand = jsonfile.readFileSync('bitchhand.owo'); // 我手賤賤的記數
+var botData = jsonfile.readFileSync('botData.owo'); // 我手賤賤的記數
 groupID = "-1001127892867" || "-1001098976262"
 jsonedit = false; //設定檔案是否被編輯
 msgtodel = '';
-bahaNoif = '';
+bahaNoif = botData['bahaNoif'];
 
 bot.getMe().then(function(me) {
     // 啟動成功
@@ -68,11 +69,14 @@ var bulletin_send = function() {
             var baha = resp;
             bot.sendMessage(groupID, '`~ㄅㄏ動畫瘋更新菌~`\n' + baha, { parse_mode: "markdown", disable_web_page_preview: true });
             bahaNoif = $(link[0]).attr('href')
+            botData['bahaNoif'] = $(link[0]).attr('href')
+            console.log(botData)
+            jsonfile.writeFileSync('botData.owo', botData);
         }
     });
 
 };
-setInterval(bulletin_send, 1000 * 6); //20min
+setInterval(bulletin_send, 1000 * 60 * 15); //15min
 // /help
 bot.onText(/\/help/, function(msg) {
     var chatId = msg.chat.id;
