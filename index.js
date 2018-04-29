@@ -6,13 +6,29 @@ var TelegramBot = require('node-telegram-bot-api'); //api
 var bot = new TelegramBot(botSecret.botToken, { polling: true });
 var request = require("request"); // HTTP 客戶端輔助工具
 var cheerio = require("cheerio"); // Server 端的 jQuery 實作
-var stupid = jsonfile.readFileSync('stupid.owo'); // 我是笨蛋的記數
-var bitchhand = jsonfile.readFileSync('bitchhand.owo'); // 我手賤賤的記數
 var botData = jsonfile.readFileSync('botData.owo'); // 我手賤賤的記數
 groupID = "-1001127892867" || "-1001098976262"
 jsonedit = false; //設定檔案是否被編輯
 msgtodel = '';
-bahaNoif = botData['bahaNoif'];
+if (!botData) {
+    botData = {};
+    console.log('已自動建立 botData')
+}
+if (!botData.bitchHand) {
+    botData.bitchHand = {};
+    console.log('已自動建立 botData.bitchHand')
+}
+if (!botData.stupid) {
+    botData.stupid = {};
+    console.log('已自動建立 botData.stupid')
+}
+if (!botData.bahaNoif) {
+    botData.bahaNoif = '';
+    console.log('已自動建立 botData.bahaNoif')
+}
+bahaNoif = botData.bahaNoif;
+bitchHand = botData.bitchHand;
+stupid = botData.stupid;
 
 bot.getMe().then(function(me) {
     // 啟動成功
@@ -360,14 +376,14 @@ bot.on('message', (msg) => {
 });
 
 function count_stupid(msg) {
-    var combo = stupid[msg.from.id]
+    var combo = botData.stupid[msg.from.id]
     if (!combo) {
-        combo = 1;
+        var combo = 1;
     } else {
-        combo = combo + 1;
+        var combo = combo + 1;
     }
     var resp = "笨笨"
-    var combo_count = "\n[" + combo + " Combo]";
+    var combo_count = "\n⭐️ " + combo + " Combo";
     if (combo > 4) { var resp = combo_count }
     if (combo > 20) { var resp = "笨蛋沒有極限" + combo_count }
     if (combo > 40) { var resp = "你這智障" + combo_count }
@@ -375,17 +391,17 @@ function count_stupid(msg) {
     if (combo > 100) { var resp = "幹你機掰人" + combo_count }
     bot.sendMessage(msg.chat.id, resp, { reply_to_message_id: msg.message_id });
     // 寫入字串
-    stupid[msg.from.id] = combo;
+    botData.stupid[msg.from.id] = combo;
     //存檔偵測
     jsonedit = true;
 }
 
 function count_bitchhand(msg) {
-    var combo = bitchhand[msg.from.id];
+    var combo = botData.bitchHand[msg.from.id]
     if (!combo) {
-        combo = 1;
+        var combo = 1;
     } else {
-        combo = combo + 1;
+        var combo = combo + 1;
     }
     var resp = "走開"
     var combo_count = "\n[" + combo + " Combo]";
@@ -396,17 +412,16 @@ function count_bitchhand(msg) {
     if (combo > 100) { var resp = "幹你機掰人" + combo_count }
     bot.sendMessage(msg.chat.id, resp, { reply_to_message_id: msg.message_id });
     // 寫入字串
-    bitchhand[msg.from.id] = combo;
+    botData.bitchHand[msg.from.id] = combo;
     //存檔偵測
     jsonedit = true;
 }
 //存檔
 var writeFile = function() {
     if (jsonedit) {
-        jsonfile.writeFileSync('bitchhand.owo', bitchhand);
-        jsonfile.writeFileSync('stupid.owo', stupid);
+        jsonfile.writeFileSync('botData.owo', botData);
         //存檔偵測
         jsonedit = false;
     }
 };
-setInterval(writeFile, 8000);
+setInterval(writeFile, 1000);
