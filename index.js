@@ -292,9 +292,46 @@ bot.onText(/\/viewCombo/, function(msg) {
 });
 
 bot.on('polling_error', (error) => {
-    console.log(error.code); // => 'EFATAL'
+    console.error(error.code); // => 'EFATAL'
 });
-bot.on('message', (msg) => {
+bot.on('message', (msg) => { // 將所有傳給機器人的訊息轉到頻道
+    var msgtext = msg.text
+    if (msg.text == undefined)
+        var msgtext = "❓無法辨識之訊息"
+    if (msg.sticker)
+        var msgtext = msg.sticker.emoji + "️貼圖 " + msg.sticker.set_name
+    if (msg.document)
+        var msgtext = "📄檔案 " + msg.document.file_name
+    if (msg.photo)
+        var msgtext = "🖼圖片"
+    if (msg.audio)
+        var msgtext = "🎵音訊"
+    if (msg.new_chat_members)
+        var msgtext = "➕新成員"
+
+    var opt = { parse_mode: "HTML", disable_web_page_preview: true }
+
+    var SendLog2Ch = "<code>[訊息]</code>" +
+        "<code>" +
+        "\n 用戶：" + msg.from.first_name + " @" + msg.from.username +
+        "\n 聊天：" + msg.chat.title + " | " + msg.chat.id + " | " + msg.chat.type +
+        "\n 編號：" + msg.message_id +
+        "\n 時間：" + msg.date +
+        "\n 訊息：" + msgtext + "</code>" +
+        "\n<a href='tg://user?id=" + msg.from.id + "'>#UserName_" + msg.from.username + "</a> #Name_" + msg.from.first_name + " #UserID_" + msg.from.id
+    bot.sendMessage(botSecret.logChannelId, SendLog2Ch, opt).then((returnmsg) => {
+        if (msg.sticker)
+            bot.sendSticker(botSecret.logChannelId, msg.sticker.file_id, { reply_to_message_id: returnmsg.message_id })
+        if (msg.document)
+            bot.sendSticker(botSecret.logChannelId, msg.document.file_id, { reply_to_message_id: returnmsg.message_id })
+        if (msg.photo)
+            bot.sendPhoto(botSecret.logChannelId, msg.photo.file_id, { reply_to_message_id: returnmsg.message_id })
+        if (msg.audio)
+            bot.sendAudio(botSecret.logChannelId, msg.audio.file_id, { reply_to_message_id: returnmsg.message_id })
+        if (msgtext == "❓無法辨識之訊息")
+            bot.forwardMessage(botSecret.logChannelId, msg.chat.id, msg.message_id)
+
+    });
     // 當有讀到文字時
     if (msg.text != undefined) {
         let msgText = msg.text.toLowerCase()
