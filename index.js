@@ -3,11 +3,12 @@ var fs = require('fs'); //檔案系統
 var jsonfile = require('jsonfile'); //讀 json 的咚咚
 var botSecret = jsonfile.readFileSync('secret.json'); // bot 資訊
 var TelegramBot = require('node-telegram-bot-api'); //api
+var token = process.env.TOKEN || botSecret.botToken
 var bot = new TelegramBot(botSecret.botToken, { polling: true });
 var request = require("request"); // HTTP 客戶端輔助工具
 var cheerio = require("cheerio"); // Server 端的 jQuery 實作
 var botData = jsonfile.readFileSync('botData.owo'); // 我手賤賤的記數
-groupID = "-1001127892867" || "-1001098976262"
+groupID = process.env.GROUPID || "-1001127892867" || "-1001098976262"
 jsonedit = false; //設定檔案是否被編輯
 msgtodel = '';
 if (!botData) {
@@ -40,16 +41,14 @@ bot.getMe().then(function(me) {
 function log(message, parse_mode = "markdown") {
     console.log(message);
     if (botSecret.logChannelId != undefined) {
-        for (i in botSecret.logChannelId) {
-            bot.sendMessage(botSecret.logChannelId[i], message, { parse_mode: parse_mode });
-        }
+        bot.sendMessage(botSecret.logChannelId, message, { parse_mode: parse_mode });
+        bot.sendMessage(groupID, message, { parse_mode: parse_mode });
     }
 }
 // /start
 bot.onText(/\/start/, function(msg) {
-    var chatId = msg.chat.id;
     var resp = '哈囉！這裡是熊貓貓';
-    bot.sendMessage(chatId, resp);
+    bot.sendMessage(msg.chat.id, resp, { reply_to_message_id: msg.message_id });
 });
 // /about
 bot.onText(/\/about/, function(msg) {
@@ -137,10 +136,16 @@ bot.onText(/\/help/, function(msg) {
     for (i in helpCommand) {
         var resp = resp + '/' + helpCommand[i].Command + '\n⭐️' + helpCommand[i].Description + '\n';
     }
-    bot.sendMessage(chatId, resp, {
-        reply_to_message_id: msg.message_id,
-        disable_web_page_preview: true
-    });
+    if (msg.chat.type == 'private') {
+        bot.sendMessage(chatId, resp, {
+            reply_to_message_id: msg.message_id,
+            disable_web_page_preview: true
+        });
+    } else {
+        bot.sendMessage(chatId, '請私訊使用', {
+            reply_to_message_id: msg.message_id
+        });
+    }
 });
 
 // 重複講話(HTML)
@@ -222,11 +227,14 @@ bot.onText(/\/baha/, function(msg) {
         var titles = $(".newanime-title");
         var ep = $(".newanime .newanime-vol");
         var link = $(".newanime__content");
-        for (var i = 0; i < 10; i++) {
-            var resp = resp + '[' + $(titles[i]).text() + '](' + $(link[i]).attr('href') + ")  " + $(ep[i]).text() + '\n';
+        for (var i = 0; i < 5; i++) {
+            var aniEp = $(ep[i]).text().match(/\d+/);
+            var aniEp = (aniEp < 10 ? '⭐️E0' + aniEp : '⭐️E' + aniEp)
+            var resp = resp + aniEp + '[' + ' ' + $(titles[i]).text() + '](' + $(link[i]).attr('href') + ")" + '\n';
         }
         var baha = resp;
-        bot.sendMessage(msg.chat.id, baha, { parse_mode: "markdown", reply_to_message_id: msg.message_id });
+        bot.sendMessage(msg.chat.id, '`~ㄅㄏ動畫瘋更新菌~`\n' + baha, { parse_mode: "markdown", reply_to_message_id: msg.message_id, disable_web_page_preview: true });
+
     });
 });
 
@@ -257,10 +265,12 @@ bot.onText(/\/removeKeyboard/, function(msg) {
 
 bot.onText(/\/cleanCombo/, function(msg) {
     // 將數據設為0
-    bitchhand[msg.from.id] = 0;
-    stupid[msg.from.id] = 0;
+    botData.bitchHand[msg.from.id] = 0;
+    botData.stupid[msg.from.id] = 0;
     //輸出
     bot.sendMessage(msg.chat.id, '紀錄已清除', { reply_to_message_id: msg.message_id });
+    //存檔偵測
+    jsonedit = true;
 });
 bot.onText(/\/viewCombo/, function(msg) {
     if (!msg.reply_to_message) {
@@ -271,44 +281,48 @@ bot.onText(/\/viewCombo/, function(msg) {
         var userNAME = msg.reply_to_message.from.first_name;
     }
     // 若使用者沒有數據，將數據設為0
-    if (!bitchhand[userID]) { bitchhand[userID] = 0; }
-    if (!stupid[userID]) { stupid[userID] = 0; }
+    if (!botData.bitchHand[userID]) { botData.bitchHand[userID] = 0; }
+    if (!botData.stupid[userID]) { botData.stupid[userID] = 0; }
     //輸出
-    resp = userNAME + " 的 Combo 數\n手賤賤：" + bitchhand[userID] + "次\n你笨笨：" + stupid[userID] + "次"
+    resp = userNAME + " 的 Combo 數\n⭐️ 手賤賤：" + botData.bitchHand[userID] + " 次\n⭐️ 你笨笨：" + botData.stupid[userID] + " 次"
     bot.sendMessage(msg.chat.id, resp, { reply_to_message_id: msg.message_id });
+    //存檔偵測
+    jsonedit = true;
 });
 
 bot.on('polling_error', (error) => {
     console.log(error.code); // => 'EFATAL'
 });
 bot.on('message', (msg) => {
-    // 將所有傳給機器人的訊息轉到頻道
-    msgTitle = "訊息文字："
-    msgText = msg.text
-    if (msg.new_chat_members != undefined) {
-        msgTitle = "新成員:"
-        msgText = "@" + msg.new_chat_members.username + " " + msg.new_chat_members.first_name
-    }
-    if (msg.text == undefined) {
-        msgText = "無法辨識之訊息"
-    }
-    if (msg.sticker) {
-        console.log(msg.sticker)
-        msgTitle = "貼圖："
-        msgText = msg.sticker.set_name + msg.sticker.emoji
-    }
-    var SendLog2Ch = "<code>[訊息]</code>" +
-        "<code>" +
-        "\n 使用者：" + msg.from.first_name + " @" + msg.from.username +
-        "\n 聊天室：" + msg.chat.title + " | " + msg.chat.id + " | " + msg.chat.type +
-        "\n 訊息編號：" + msg.message_id +
-        "\n 發送時間：" + msg.date +
-        "\n " + msgTitle + msgText + "</code>" +
-        "\n#UserName_" + msg.from.username + " #Name_" + msg.from.first_name + " #UserID_" + msg.from.id
-    msg.from.id
-    bot.sendMessage('-1001143743775', SendLog2Ch, { parse_mode: "HTML" });
     // 當有讀到文字時
     if (msg.text != undefined) {
+        if (botSecret.logChannelId != undefined) {
+            // 將所有傳給機器人的訊息轉到頻道
+            msgTitle = "訊息文字："
+            msgText = msg.text
+            if (msg.new_chat_members != undefined) {
+                msgTitle = "新成員:"
+                msgText = "@" + msg.new_chat_members.username + " " + msg.new_chat_members.first_name
+            }
+            if (msg.text == undefined) {
+                msgText = "無法辨識之訊息"
+            }
+            if (msg.sticker) {
+                console.log(msg.sticker)
+                msgTitle = "貼圖："
+                msgText = msg.sticker.set_name + msg.sticker.emoji
+            }
+            var SendLog2Ch = "<code>[訊息]</code>" +
+                "<code>" +
+                "\n 使用者：" + msg.from.first_name + " @" + msg.from.username +
+                "\n 聊天室：" + msg.chat.title + " | " + msg.chat.id + " | " + msg.chat.type +
+                "\n 訊息編號：" + msg.message_id +
+                "\n 發送時間：" + msg.date +
+                "\n " + msgTitle + msgText + "</code>" +
+                "\n#UserName_" + msg.from.username + " #Name_" + msg.from.first_name + " #UserID_" + msg.from.id
+            msg.from.id
+            bot.sendMessage(botSecret.logChannelId, SendLog2Ch, { parse_mode: "HTML" });
+        }
         let msgText = msg.text.toLowerCase()
             // 發 幹 的時候回復
         if (msgText.indexOf("幹") === 0) {
@@ -424,4 +438,4 @@ var writeFile = function() {
         jsonedit = false;
     }
 };
-setInterval(writeFile, 1000);
+setInterval(writeFile, 10000);
