@@ -47,8 +47,9 @@ function log(message, parse_mode = "markdown") {
 }
 // /start
 bot.onText(/\/start/, function(msg) {
+    var chatId = msg.chat.id;
     var resp = '哈囉！這裡是熊貓貓';
-    bot.sendMessage(msg.chat.id, resp, { reply_to_message_id: msg.message_id });
+    bot.sendMessage(chatId, resp, { parse_mode: "markdown", reply_to_message_id: msg.message_id });
 });
 // /about
 bot.onText(/\/about/, function(msg) {
@@ -296,33 +297,6 @@ bot.on('polling_error', (error) => {
 bot.on('message', (msg) => {
     // 當有讀到文字時
     if (msg.text != undefined) {
-        if (botSecret.logChannelId != undefined) {
-            // 將所有傳給機器人的訊息轉到頻道
-            msgTitle = "訊息文字："
-            msgText = msg.text
-            if (msg.new_chat_members != undefined) {
-                msgTitle = "新成員:"
-                msgText = "@" + msg.new_chat_members.username + " " + msg.new_chat_members.first_name
-            }
-            if (msg.text == undefined) {
-                msgText = "無法辨識之訊息"
-            }
-            if (msg.sticker) {
-                console.log(msg.sticker)
-                msgTitle = "貼圖："
-                msgText = msg.sticker.set_name + msg.sticker.emoji
-            }
-            var SendLog2Ch = "<code>[訊息]</code>" +
-                "<code>" +
-                "\n 使用者：" + msg.from.first_name + " @" + msg.from.username +
-                "\n 聊天室：" + msg.chat.title + " | " + msg.chat.id + " | " + msg.chat.type +
-                "\n 訊息編號：" + msg.message_id +
-                "\n 發送時間：" + msg.date +
-                "\n " + msgTitle + msgText + "</code>" +
-                "\n#UserName_" + msg.from.username + " #Name_" + msg.from.first_name + " #UserID_" + msg.from.id
-            msg.from.id
-            bot.sendMessage(botSecret.logChannelId, SendLog2Ch, { parse_mode: "HTML" });
-        }
         let msgText = msg.text.toLowerCase()
             // 發 幹 的時候回復
         if (msgText.indexOf("幹") === 0) {
