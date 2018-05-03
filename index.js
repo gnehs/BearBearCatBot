@@ -7,7 +7,7 @@ var token = process.env.TOKEN || botSecret.botToken
 var bot = new TelegramBot(botSecret.botToken, { polling: true });
 var request = require("request"); // HTTP 客戶端輔助工具
 var cheerio = require("cheerio"); // Server 端的 jQuery 實作
-var botData = jsonfile.readFileSync('botData.owo'); // 我手賤賤的記數
+botData = jsonfile.readFileSync('botData.owo'); // 我手賤賤的記數
 groupID = process.env.GROUPID || "-1001127892867" || "-1001098976262"
 jsonedit = false; //設定檔案是否被編輯
 msgtodel = '';
@@ -27,14 +27,20 @@ if (!botData.bahaNoif) {
     botData.bahaNoif = '';
     console.log('已自動建立 botData.bahaNoif')
 }
+if (!botData.name) {
+    botData.name = '';
+    console.log('已自動建立 botData.name')
+}
 bahaNoif = botData.bahaNoif;
 bitchHand = botData.bitchHand;
 stupid = botData.stupid;
+botname = botData.name;
 
 bot.getMe().then(function(me) {
     // 啟動成功
     var start_time = new Date().getHours() + ":" + new Date().getMinutes() + ":" + new Date().getSeconds(); // 機器人啟動時間
-    botUsername = me.username
+    botData['name'] = me.first_name
+    jsonfile.writeFileSync('botData.owo', botData);
     log("`[系統]`" + me.first_name + ' @' + me.username + " 在 " + start_time + " 時啟動成功");
 });
 // log
@@ -48,18 +54,18 @@ function log(message, parse_mode = "markdown") {
 // /start
 bot.onText(/\/start/, function(msg) {
     var chatId = msg.chat.id;
-    var resp = '哈囉！這裡是熊貓貓';
+    var resp = '哈囉！這裡是' + botData['name'];
     bot.sendMessage(chatId, resp, { parse_mode: "markdown", reply_to_message_id: msg.message_id });
 });
 // /about
 bot.onText(/\/about/, function(msg) {
-    var resp = `早安，熊貓貓 Desu
-熊貓貓是測試用的，所以不定時開機喔！
+    var resp = `早安，` + botData['name'] + ` Desu
 ---
 GitHub / git.io/BearBearCatBot
 開發者  / git.io/gnehs`;
     bot.sendMessage(msg.chat.id, resp, { parse_mode: "markdown", reply_to_message_id: msg.message_id });
 });
+
 
 // ㄅㄏ更新通知
 // 定時發送
@@ -86,7 +92,6 @@ var bulletin_send = function() {
             bot.sendMessage(groupID, '`~ㄅㄏ動畫瘋更新菌~`\n' + baha, { parse_mode: "markdown", disable_web_page_preview: true });
             bahaNoif = $(link[0]).attr('href')
             botData['bahaNoif'] = $(link[0]).attr('href')
-            console.log(botData)
             jsonfile.writeFileSync('botData.owo', botData);
         }
     });
@@ -101,19 +106,19 @@ bot.onText(/\/help/, function(msg) {
             Description: "重複講話(可用 HTML)",
         },
         {
-            Command: 'addKeyboard',
+            Command: 'addkbd',
             Description: "新增鍵盤",
         },
         {
-            Command: 'removeKeyboard',
+            Command: 'removekbd',
             Description: "移除鍵盤",
         },
         {
-            Command: 'viewCombo',
+            Command: 'viewcombo',
             Description: "查看手賤賤及笨蛋的 Combo，回復別人訊息可取得該使用者的 Combo",
         },
         {
-            Command: 'cleanCombo',
+            Command: 'cleancombo',
             Description: "清除手賤賤及笨蛋的 Combo(無法復原)",
         },
         {
@@ -122,7 +127,7 @@ bot.onText(/\/help/, function(msg) {
         },
         {
             Command: 'about',
-            Description: "關於熊貓貓",
+            Description: "關於" + botData['name'],
         },
         {
             Command: 'leave [Chat ID]',
@@ -239,8 +244,13 @@ bot.onText(/\/baha/, function(msg) {
     });
 });
 
+//getgroupid
+bot.onText(/\/getgroupid/, function(msg) {
+    bot.sendMessage(msg.chat.id, 'id=`' + msg.chat.id + '`', { parse_mode: "markdown", reply_to_message_id: msg.message_id });
+});
+
 //鍵盤新增跟移除
-bot.onText(/\/addKeyboard/, function(msg) {
+bot.onText(/\/addkbd/, function(msg) {
     const opts = {
         reply_markup: JSON.stringify({
             keyboard: [
@@ -254,7 +264,7 @@ bot.onText(/\/addKeyboard/, function(msg) {
     bot.sendMessage(msg.chat.id, '鍵盤已新增', opts);
 });
 
-bot.onText(/\/removeKeyboard/, function(msg) {
+bot.onText(/\/removekbd/, function(msg) {
     const opts = {
         reply_markup: JSON.stringify({
             remove_keyboard: true,
@@ -264,7 +274,7 @@ bot.onText(/\/removeKeyboard/, function(msg) {
     bot.sendMessage(msg.chat.id, '鍵盤已移除', opts);
 });
 
-bot.onText(/\/cleanCombo/, function(msg) {
+bot.onText(/\/cleancombo/, function(msg) {
     // 將數據設為0
     botData.bitchHand[msg.from.id] = 0;
     botData.stupid[msg.from.id] = 0;
@@ -273,7 +283,7 @@ bot.onText(/\/cleanCombo/, function(msg) {
     //存檔偵測
     jsonedit = true;
 });
-bot.onText(/\/viewCombo/, function(msg) {
+bot.onText(/\/viewcombo/, function(msg) {
     if (!msg.reply_to_message) {
         var userID = msg.from.id;
         var userNAME = msg.from.first_name;
@@ -294,7 +304,109 @@ bot.onText(/\/viewCombo/, function(msg) {
 bot.on('polling_error', (error) => {
     console.error(error.code); // => 'EFATAL'
 });
-bot.on('message', (msg) => { // 將所有傳給機器人的訊息轉到頻道
+bot.on('message', (msg) => {
+    // 當有讀到文字時
+    if (msg.text != undefined) {
+        let msgText = msg.text.toLowerCase()
+            // 發 幹 的時候回復
+        if (msgText.indexOf("幹") === 0) {
+            bot.sendMessage(msg.chat.id, "<i>QQ</i>", { parse_mode: "HTML", reply_to_message_id: msg.message_id });
+        }
+        /*if (msgText == '/block') {
+            jsonedit = true;
+            bot.sendMessage(msg.chat.id, '已封鎖' + msg.from.first_name, { parse_mode: "HTML", reply_to_message_id: msg.message_id });
+        }*/
+        // 發 Ping 的時候回復
+        if (msgText.indexOf("ping") === 0) {
+            bot.sendMessage(msg.chat.id, "<b>PONG</b>", { parse_mode: "HTML", reply_to_message_id: msg.message_id });
+        }
+        if (msgText.indexOf("貼圖") > -1) {
+            if (msgText.indexOf("請問") > -1 || msgText.indexOf("求") > -1 || msgText.indexOf("有") > -1) {
+                bot.sendMessage(msg.chat.id, "詢問或發佈貼圖時請使用標籤，這樣才能被正確索引\n像是 `#詢問 #妖嬌美麗的恐龍 #會飛的`\n*＊本功能測試中，誤報請私* [@gnehs_OwO](https://t.me/gnehs_OwO) ＊", { parse_mode: "markdown", reply_to_message_id: msg.message_id, disable_web_page_preview: true });
+            }
+        }
+        if (msgText.indexOf("ㄈㄓ") === 0) {
+            bot.sendMessage(msg.chat.id, "油", { reply_to_message_id: msg.message_id });
+        }
+        if (msgText.indexOf("晚安") === 0) {
+            bot.sendMessage(msg.chat.id, msg.from.first_name + "晚安❤️", { reply_to_message_id: msg.message_id });
+        }
+        if (msgText.indexOf("喵") === 0) {
+            bot.sendMessage(msg.chat.id, "`HTTP /1.1 200 OK.`", { parse_mode: "markdown", reply_to_message_id: msg.message_id });
+        }
+        if (msgText == '我是笨蛋' > -1 && msg.reply_to_message.from.first_name == botname) {
+            console.log(botData.stupid)
+            var combo = botData.stupid[msg.from.id]
+            if (!combo) {
+                var combo = 1;
+            } else {
+                var combo = combo + 1;
+            }
+            var resp = "笨笨"
+            var combo_count = "\n⭐️ " + combo + " Combo";
+            if (combo > 4) { var resp = combo_count }
+            if (combo > 20) { var resp = "笨蛋沒有極限" + combo_count }
+            if (combo > 40) { var resp = "你這智障" + combo_count }
+            if (combo > 60) { var resp = combo_count }
+            if (combo > 100) { var resp = "幹你機掰人" + combo_count }
+            bot.sendMessage(msg.chat.id, resp, { reply_to_message_id: msg.message_id });
+            // 寫入字串
+            botData.stupid[msg.from.id] = combo;
+            //存檔偵測
+            jsonedit = true;
+        }
+        if (msgText == '我手賤賤' && msg.reply_to_message.from.first_name == botname) {
+            var combo = botData.bitchHand[msg.from.id]
+            if (!combo) {
+                var combo = 1;
+            } else {
+                var combo = combo + 1;
+            }
+            var resp = "走開"
+            var combo_count = "\n[" + combo + " Combo]";
+            if (combo > 4) { var resp = combo_count }
+            if (combo > 20) { var resp = "走開，你這賤人" + combo_count }
+            if (combo > 40) { var resp = "你這臭 Bitch" + combo_count }
+            if (combo > 60) { var resp = combo_count }
+            if (combo > 100) { var resp = "幹你機掰人" + combo_count }
+            bot.sendMessage(msg.chat.id, resp, { reply_to_message_id: msg.message_id });
+            // 寫入字串
+            botData.bitchHand[msg.from.id] = combo;
+            //存檔偵測
+            jsonedit = true;
+        }
+        if (msg.text == '怕') {
+            bot.sendMessage(msg.chat.id, "嚇到吃手手", { parse_mode: "markdown", reply_to_message_id: msg.message_id });
+        }
+        // 辨識是否 Tag 正確
+        if (msgText.indexOf("#询问") === 0) {
+            var text = chineseConv.tify(msg.text);
+            bot.sendMessage(msg.chat.id, text, { reply_to_message_id: msg.message_id });
+        }
+        if (msgText.indexOf("#詢問#") > -1) {
+            var send = "<b>錯誤 - Tag 無法被正常偵測</b>" +
+                "\n<a href='http://telegra.ph/%E5%A6%82%E4%BD%95%E6%AD%A3%E7%A2%BA%E7%9A%84-Tag-07-25'>查看正確的 #Tag 方式</a>";
+            bot.sendMessage(msg.chat.id, send, { parse_mode: "html", reply_to_message_id: msg.message_id });
+        }
+        if (msg.text.indexOf("＃詢問") > -1) {
+            var send = "<b>錯誤 - Tag 無法被正常偵測</b>" +
+                "\n您的輸入設定似乎被設為全形，請換成半形後再試試";
+            bot.sendMessage(msg.chat.id, send, { parse_mode: "html", reply_to_message_id: msg.message_id });
+        }
+        if (msg.text.indexOf("#") > -1) {
+            if (msg.text.match(/#/ig).length !== msg.entities.reduce((n, i) => (i.type === 'hashtag') ? n + 1 : n, 0)) {
+                var send = "<b>錯誤 - Tag 無法被正常偵測</b>" +
+                    "\n<a href='http://telegra.ph/%E5%A6%82%E4%BD%95%E6%AD%A3%E7%A2%BA%E7%9A%84-Tag-07-25'>查看正確的 #Tag 方式</a>";
+                if (msg.entities.reduce((n, i) => (i.type === 'bold') ? n + 1 : n, 0) > 0) {
+                    var send = "<b>錯誤 - Tag 因為粗體而無法被正常偵測</b>" +
+                        "\n若您是 iOS 使用者，可能是粗體尚未關閉導致的" +
+                        "\n<a href='https://blog.gnehs.net/telegram-ios-tag'>查看如何解決 iOS Tag 失敗的問題</a>";
+                }
+                bot.sendMessage(msg.chat.id, send, { parse_mode: "html", reply_to_message_id: msg.message_id })
+            }
+        }
+    }
+    // 將所有傳給機器人的訊息轉到頻道
     var msgtext = msg.text
     if (msg.text == undefined)
         var msgtext = "❓無法辨識之訊息"
@@ -332,115 +444,7 @@ bot.on('message', (msg) => { // 將所有傳給機器人的訊息轉到頻道
             bot.forwardMessage(botSecret.logChannelId, msg.chat.id, msg.message_id)
 
     });
-    // 當有讀到文字時
-    if (msg.text != undefined) {
-        let msgText = msg.text.toLowerCase()
-            // 發 幹 的時候回復
-        if (msgText.indexOf("幹") === 0) {
-            bot.sendMessage(msg.chat.id, "<i>QQ</i>", { parse_mode: "HTML", reply_to_message_id: msg.message_id });
-        }
-        /*if (msgText == '/block') {
-            jsonedit = true;
-            bot.sendMessage(msg.chat.id, '已封鎖' + msg.from.first_name, { parse_mode: "HTML", reply_to_message_id: msg.message_id });
-        }*/
-        // 發 Ping 的時候回復
-        if (msgText.indexOf("ping") === 0) {
-            bot.sendMessage(msg.chat.id, "<b>PONG</b>", { parse_mode: "HTML", reply_to_message_id: msg.message_id });
-        }
-        if (msgText.indexOf("貼圖") > -1) {
-            if (msgText.indexOf("請問") > -1 || msgText.indexOf("求") > -1 || msgText.indexOf("有") > -1) {
-                bot.sendMessage(msg.chat.id, "詢問或發佈貼圖時請使用標籤，這樣才能被正確索引\n像是 `#詢問 #妖嬌美麗的恐龍 #會飛的`\n*＊本功能測試中，誤報請私* [@gnehs_OwO](https://t.me/gnehs_OwO) ＊", { parse_mode: "markdown", reply_to_message_id: msg.message_id, disable_web_page_preview: true });
-            }
-        }
-        if (msgText.indexOf("ㄈㄓ") === 0) {
-            bot.sendMessage(msg.chat.id, "油", { reply_to_message_id: msg.message_id });
-        }
-        if (msgText.indexOf("晚安") === 0) {
-            bot.sendMessage(msg.chat.id, msg.from.first_name + "晚安❤️", { reply_to_message_id: msg.message_id });
-        }
-        if (msgText.indexOf("喵") === 0) {
-            bot.sendMessage(msg.chat.id, "`HTTP /1.1 200 OK.`", { parse_mode: "markdown", reply_to_message_id: msg.message_id });
-        }
-        if (msgText.indexOf('我是笨蛋') === 0 && msg.reply_to_message.from.username == botUsername) {
-            count_stupid(msg);
-        }
-        if (msgText.indexOf('我手賤賤') === 0 && msg.reply_to_message.from.username == botUsername) {
-            count_bitchhand(msg);
-        }
-        if (msg.text == '怕') {
-            bot.sendMessage(msg.chat.id, "嚇到吃手手", { parse_mode: "markdown", reply_to_message_id: msg.message_id });
-        }
-        // 辨識是否 Tag 正確
-        if (msgText.indexOf("#询问") === 0) {
-            var text = chineseConv.tify(msg.text);
-            bot.sendMessage(msg.chat.id, text, { reply_to_message_id: msg.message_id });
-        }
-        if (msgText.indexOf("#詢問#") > -1) {
-            var send = "<b>錯誤 - Tag 無法被正常偵測</b>" +
-                "\n<a href='http://telegra.ph/%E5%A6%82%E4%BD%95%E6%AD%A3%E7%A2%BA%E7%9A%84-Tag-07-25'>查看正確的 #Tag 方式</a>";
-            bot.sendMessage(msg.chat.id, send, { parse_mode: "html", reply_to_message_id: msg.message_id });
-        }
-        if (msg.text.indexOf("＃詢問") > -1) {
-            var send = "<b>錯誤 - Tag 無法被正常偵測</b>" +
-                "\n您的輸入設定似乎被設為全形，請換成半形後再試試";
-            bot.sendMessage(msg.chat.id, send, { parse_mode: "html", reply_to_message_id: msg.message_id });
-        }
-        if (msg.text.indexOf("#") > -1) {
-            if (msg.text.match(/#/ig).length !== msg.entities.reduce((n, i) => (i.type === 'hashtag') ? n + 1 : n, 0)) {
-                var send = "<b>錯誤 - Tag 無法被正常偵測</b>" +
-                    "\n<a href='http://telegra.ph/%E5%A6%82%E4%BD%95%E6%AD%A3%E7%A2%BA%E7%9A%84-Tag-07-25'>查看正確的 #Tag 方式</a>";
-                if (msg.entities.reduce((n, i) => (i.type === 'bold') ? n + 1 : n, 0) > 0) {
-                    var send = "<b>錯誤 - Tag 因為粗體而無法被正常偵測</b>" +
-                        "\n若您是 iOS 使用者，可能是粗體尚未關閉導致的" +
-                        "\n<a href='https://blog.gnehs.net/telegram-ios-tag'>查看如何解決 iOS Tag 失敗的問題</a>";
-                }
-                bot.sendMessage(msg.chat.id, send, { parse_mode: "html", reply_to_message_id: msg.message_id })
-            }
-        }
-    }
 });
-
-function count_stupid(msg) {
-    var combo = botData.stupid[msg.from.id]
-    if (!combo) {
-        var combo = 1;
-    } else {
-        var combo = combo + 1;
-    }
-    var resp = "笨笨"
-    var combo_count = "\n⭐️ " + combo + " Combo";
-    if (combo > 4) { var resp = combo_count }
-    if (combo > 20) { var resp = "笨蛋沒有極限" + combo_count }
-    if (combo > 40) { var resp = "你這智障" + combo_count }
-    if (combo > 60) { var resp = combo_count }
-    if (combo > 100) { var resp = "幹你機掰人" + combo_count }
-    bot.sendMessage(msg.chat.id, resp, { reply_to_message_id: msg.message_id });
-    // 寫入字串
-    botData.stupid[msg.from.id] = combo;
-    //存檔偵測
-    jsonedit = true;
-}
-
-function count_bitchhand(msg) {
-    var combo = botData.bitchHand[msg.from.id]
-    if (!combo) {
-        var combo = 1;
-    } else {
-        var combo = combo + 1;
-    }
-    var resp = "走開"
-    var combo_count = "\n[" + combo + " Combo]";
-    if (combo > 4) { var resp = combo_count }
-    if (combo > 20) { var resp = "走開，你這賤人" + combo_count }
-    if (combo > 40) { var resp = "你這臭 Bitch" + combo_count }
-    if (combo > 60) { var resp = combo_count }
-    if (combo > 100) { var resp = "幹你機掰人" + combo_count }
-    bot.sendMessage(msg.chat.id, resp, { reply_to_message_id: msg.message_id });
-    // 寫入字串
-    botData.bitchHand[msg.from.id] = combo;
-    //存檔偵測
-    jsonedit = true;
-}
 //存檔
 var writeFile = function() {
     if (jsonedit) {
