@@ -1,12 +1,12 @@
 ﻿// 載入
-var fs = require('fs'); //檔案系統
-var jsonfile = require('jsonfile'); //讀 json 的咚咚
-var botSecret = jsonfile.readFileSync('secret.json'); // bot 資訊
-var TelegramBot = require('node-telegram-bot-api'); //api
-var token = process.env.TOKEN || botSecret.botToken
-var bot = new TelegramBot(botSecret.botToken, { polling: true });
-var request = require("request"); // HTTP 客戶端輔助工具
-var cheerio = require("cheerio"); // Server 端的 jQuery 實作
+const fs = require('fs'); //檔案系統
+const jsonfile = require('jsonfile'); //讀 json 的咚咚
+const botSecret = jsonfile.readFileSync('secret.json'); // bot 資訊
+const TelegramBot = require('node-telegram-bot-api'); //api
+const token = process.env.TOKEN || botSecret.botToken
+const bot = new TelegramBot(botSecret.botToken, { polling: true });
+const request = require("request"); // HTTP 客戶端輔助工具
+const cheerio = require("cheerio"); // Server 端的 jQuery 實作
 botData = jsonfile.readFileSync('botData.owo'); // 我手賤賤的記數
 groupID = process.env.GROUPID || "-1001127892867" || "-1001098976262"
 jsonedit = false; //設定檔案是否被編輯
