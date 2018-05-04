@@ -165,22 +165,22 @@ bot.onText(/\/leave (.+)/, function(msg, match) {
     if (msg.from.username == 'gnehs_OwO') {
         bot.leaveChat(match[1])
         var resp = '好了';
+        bot.sendMessage(msg.chat.id, resp, { reply_to_message_id: msg.message_id });
     } else {
-        count_bitchhand(msg);
-        var resp = '你也是很棒棒喔';
+        msgBitchHand(msg)
     }
-    bot.sendMessage(msg.chat.id, resp, { reply_to_message_id: msg.message_id });
 });
 
 // 放假
 bot.onText(/\/dayoff/, function(msg) {
-    request({
+    bot.sendMessage(msg.chat.id, '聽說改版ㄌ，有放到再敲ㄅㄅㄕ更新', { parse_mode: "markdown", reply_to_message_id: msg.message_id });
+    /*request({
         url: "https://www.dgpa.gov.tw/typh/daily/nds.html",
         method: "GET",
         rejectUnauthorized: false
     }, function(e, r, b) {
-        /* e: 錯誤代碼 */
-        /* b: 傳回的資料內容 */
+        // e: 錯誤代碼 
+        // b: 傳回的資料內容 
         if (e || !b) { return; }
         var $ = cheerio.load(b);
         var resp = '';
@@ -192,7 +192,7 @@ bot.onText(/\/dayoff/, function(msg) {
         }
         var dayoff = resp + '---\n`詳細及最新情報以` [行政院人事行政總處](goo.gl/GjmZnR) `公告為主`\n' + time;
         bot.sendMessage(msg.chat.id, dayoff, { parse_mode: "markdown", reply_to_message_id: msg.message_id });
-    });
+    });*/
 });
 
 // 今日
@@ -256,10 +256,9 @@ bot.onText(/\/addkbd/, function(msg) {
             keyboard: [
                 ['我是笨蛋', '我手賤賤']
             ],
-            resize_keyboard: true,
-            one_time_keyboard: true,
-            reply_to_message_id: msg.message_id
-        })
+            resize_keyboard: true
+        }),
+        reply_to_message_id: msg.message_id
     };
     bot.sendMessage(msg.chat.id, '鍵盤已新增', opts);
 });
@@ -267,9 +266,9 @@ bot.onText(/\/addkbd/, function(msg) {
 bot.onText(/\/removekbd/, function(msg) {
     const opts = {
         reply_markup: JSON.stringify({
-            remove_keyboard: true,
-            reply_to_message_id: msg.message_id
-        })
+            remove_keyboard: true
+        }),
+        reply_to_message_id: msg.message_id
     };
     bot.sendMessage(msg.chat.id, '鍵盤已移除', opts);
 });
@@ -334,46 +333,11 @@ bot.on('message', (msg) => {
         if (msgText.indexOf("喵") === 0) {
             bot.sendMessage(msg.chat.id, "`HTTP /1.1 200 OK.`", { parse_mode: "markdown", reply_to_message_id: msg.message_id });
         }
-        if (msgText == '我是笨蛋' > -1 && msg.reply_to_message.from.first_name == botname) {
-            console.log(botData.stupid)
-            var combo = botData.stupid[msg.from.id]
-            if (!combo) {
-                var combo = 1;
-            } else {
-                var combo = combo + 1;
-            }
-            var resp = "笨笨"
-            var combo_count = "\n⭐️ " + combo + " Combo";
-            if (combo > 4) { var resp = combo_count }
-            if (combo > 20) { var resp = "笨蛋沒有極限" + combo_count }
-            if (combo > 40) { var resp = "你這智障" + combo_count }
-            if (combo > 60) { var resp = combo_count }
-            if (combo > 100) { var resp = "幹你機掰人" + combo_count }
-            bot.sendMessage(msg.chat.id, resp, { reply_to_message_id: msg.message_id });
-            // 寫入字串
-            botData.stupid[msg.from.id] = combo;
-            //存檔偵測
-            jsonedit = true;
+        if (msgText == '我是笨蛋' && msg.reply_to_message.from.first_name == botname) {
+            msgStupid(msg)
         }
         if (msgText == '我手賤賤' && msg.reply_to_message.from.first_name == botname) {
-            var combo = botData.bitchHand[msg.from.id]
-            if (!combo) {
-                var combo = 1;
-            } else {
-                var combo = combo + 1;
-            }
-            var resp = "走開"
-            var combo_count = "\n[" + combo + " Combo]";
-            if (combo > 4) { var resp = combo_count }
-            if (combo > 20) { var resp = "走開，你這賤人" + combo_count }
-            if (combo > 40) { var resp = "你這臭 Bitch" + combo_count }
-            if (combo > 60) { var resp = combo_count }
-            if (combo > 100) { var resp = "幹你機掰人" + combo_count }
-            bot.sendMessage(msg.chat.id, resp, { reply_to_message_id: msg.message_id });
-            // 寫入字串
-            botData.bitchHand[msg.from.id] = combo;
-            //存檔偵測
-            jsonedit = true;
+            msgBitchHand(msg)
         }
         if (msg.text == '怕') {
             bot.sendMessage(msg.chat.id, "嚇到吃手手", { parse_mode: "markdown", reply_to_message_id: msg.message_id });
@@ -445,6 +409,49 @@ bot.on('message', (msg) => {
 
     });
 });
+
+function msgStupid(msg) {
+
+    var combo = botData.stupid[msg.from.id]
+    if (!combo) {
+        var combo = 1;
+    } else {
+        var combo = combo + 1;
+    }
+    var resp = "笨笨"
+    var combo_count = "\n⭐️ " + combo + " Combo";
+    if (combo > 4) { var resp = combo_count }
+    if (combo > 20) { var resp = "笨蛋沒有極限" + combo_count }
+    if (combo > 40) { var resp = "你這智障" + combo_count }
+    if (combo > 60) { var resp = combo_count }
+    if (combo > 100) { var resp = "幹你機掰人" + combo_count }
+    bot.sendMessage(msg.chat.id, resp, { reply_to_message_id: msg.message_id });
+    // 寫入字串
+    botData.stupid[msg.from.id] = combo;
+    //存檔偵測
+    jsonedit = true;
+}
+
+function msgBitchHand(msg) {
+    var combo = botData.bitchHand[msg.from.id]
+    if (!combo) {
+        var combo = 1;
+    } else {
+        var combo = combo + 1;
+    }
+    var resp = "走開"
+    var combo_count = "\n⭐️ " + combo + " Combo";
+    if (combo > 4) { var resp = combo_count }
+    if (combo > 20) { var resp = "走開，你這賤人" + combo_count }
+    if (combo > 40) { var resp = "你這臭 Bitch" + combo_count }
+    if (combo > 60) { var resp = combo_count }
+    if (combo > 100) { var resp = "幹你機掰人" + combo_count }
+    bot.sendMessage(msg.chat.id, resp, { reply_to_message_id: msg.message_id });
+    // 寫入字串
+    botData.bitchHand[msg.from.id] = combo;
+    //存檔偵測
+    jsonedit = true;
+}
 //存檔
 var writeFile = function() {
     if (jsonedit) {
