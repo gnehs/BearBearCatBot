@@ -4,7 +4,7 @@ const jsonfile = require('jsonfile'); //讀 json 的咚咚
 const botSecret = jsonfile.readFileSync('secret.json'); // bot 資訊
 const TelegramBot = require('node-telegram-bot-api'); //api
 const token = process.env.TOKEN || botSecret.botToken
-const bot = new TelegramBot(botSecret.botToken, { polling: true });
+const bot = new TelegramBot(token, { polling: true });
 const request = require("request"); // HTTP 客戶端輔助工具
 const cheerio = require("cheerio"); // Server 端的 jQuery 實作
 botData = jsonfile.readFileSync('botData.owo'); // 我手賤賤的記數
@@ -24,7 +24,7 @@ if (!botData.stupid) {
     console.log('已自動建立 botData.stupid')
 }
 if (!botData.bahaNoif) {
-    botData.bahaNoif = '';
+    botData.bahaNoif = {};
     console.log('已自動建立 botData.bahaNoif')
 }
 if (!botData.name) {
@@ -38,7 +38,15 @@ botname = botData.name;
 
 bot.getMe().then(function(me) {
     // 啟動成功
-    var start_time = new Date().getHours() + ":" + new Date().getMinutes() + ":" + new Date().getSeconds(); // 機器人啟動時間
+    // 建立現在時間的物件
+    d = new Date();
+    // 取得 UTC time
+    utc = d.getTime() + (d.getTimezoneOffset() * 60000);
+    // 取得台北時間
+    nd = new Date(utc + (3600000 * 8));
+    var start_time = nd.getFullYear() + '/' + (nd.getMonth() + 1) + '/' + nd.getDate() + ' ' +
+        (nd.getHours() < 10 ? '0' + nd.getHours() : nd.getHours()) + ':' + (nd.getMinutes() < 10 ? '0' + nd.getMinutes() : nd.getMinutes()) + ':' + nd.getSeconds(); // 機器人啟動時間
+    console.log("[系統]" + me.first_name + ' @' + me.username + " 在 " + start_time + " 時啟動成功");
     botData['name'] = me.first_name
     jsonfile.writeFileSync('botData.owo', botData);
     log("`[系統]`" + me.first_name + ' @' + me.username + " 在 " + start_time + " 時啟動成功");
@@ -82,22 +90,25 @@ var bulletin_send = function() {
         var titles = $(".newanime-title");
         var ep = $(".newanime .newanime-vol");
         var link = $(".newanime__content");
-        if (bahaNoif != $(link[0]).attr('href')) { //有更新才發
-            for (var i = 0; i < 3; i++) {
+        var firstLink = $(link[0]).attr('href').split('=')[1]
+        if (!botData['bahaNoif'][firstLink]) { //有更新才發
+            for (var i = 0; i < link.length; i++) {
+                var aniID = $(link[i]).attr('href').split('=')[1]
                 var aniEp = $(ep[i]).text().match(/\d+/);
-                var aniEp = (aniEp < 10 ? '⭐️E0' + aniEp : '⭐️E' + aniEp)
-                var resp = resp + aniEp + '[' + ' ' + $(titles[i]).text() + '](' + $(link[i]).attr('href') + ")" + '\n';
+                if (!botData['bahaNoif'][$(link[i]).attr('href')]) //新內容用菱形
+                    var aniEp = (aniEp < 10 ? '🔶 E0' + aniEp : '🔶 E' + aniEp)
+                else
+                    var aniEp = (aniEp < 10 ? '▫️ E0' + aniEp : '▫️ E' + aniEp)
+                if (i < 3 || !botData['bahaNoif'][aniID]) //如果更新數量超過 3 也會發出來
+                    var resp = resp + aniEp + '[' + ' ' + $(titles[i]).text() + '](' + $(link[i]).attr('href') + ")" + '\n';
+                botData['bahaNoif'][aniID] = true
             }
-            var baha = resp;
-            bot.sendMessage(groupID, '`~ㄅㄏ動畫瘋更新菌~`\n' + baha, { parse_mode: "markdown", disable_web_page_preview: true });
-            bahaNoif = $(link[0]).attr('href')
-            botData['bahaNoif'] = $(link[0]).attr('href')
+            bot.sendMessage(groupID, '`~ㄅㄏ動畫瘋更新菌~`\n' + resp, { parse_mode: "markdown", disable_web_page_preview: true });
             jsonfile.writeFileSync('botData.owo', botData);
         }
     });
-
 };
-setInterval(bulletin_send, 1000 * 60 * 15); //15min
+setInterval(bulletin_send, 1000 * 60 * 1); //15min
 // /help
 bot.onText(/\/help/, function(msg) {
     var chatId = msg.chat.id;
