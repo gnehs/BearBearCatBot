@@ -45,8 +45,8 @@ bot.getMe().then(function(me) {
     // 取得台北時間
     nd = new Date(utc + (3600000 * 8));
     var start_time = nd.getFullYear() + '/' + (nd.getMonth() + 1) + '/' + nd.getDate() + ' ' +
-        (nd.getHours() < 10 ? '0' + nd.getHours() : nd.getHours()) + ':' + (nd.getMinutes() < 10 ? '0' + nd.getMinutes() : nd.getMinutes()) + ':' + nd.getSeconds(); // 機器人啟動時間
-    console.log("[系統]" + me.first_name + ' @' + me.username + " 在 " + start_time + " 時啟動成功");
+        (nd.getHours() < 10 ? '0' + nd.getHours() : nd.getHours()) + ':' +
+        (nd.getMinutes() < 10 ? '0' + nd.getMinutes() : nd.getMinutes()) + ':' + nd.getSeconds(); // 機器人啟動時間
     botData['name'] = me.first_name
     jsonfile.writeFileSync('botData.owo', botData);
     log("`[系統]`" + me.first_name + ' @' + me.username + " 在 " + start_time + " 時啟動成功");
