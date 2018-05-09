@@ -335,11 +335,13 @@ bot.on('message', (msg) => {
         if (msgText.indexOf("喵") === 0) {
             bot.sendMessage(msg.chat.id, "`HTTP /1.1 200 OK.`", { parse_mode: "markdown", reply_to_message_id: msg.message_id });
         }
-        if (msgText == '我是笨蛋') {
-            msgStupid(msg)
-        }
-        if (msgText == '我手賤賤') {
-            msgBitchHand(msg)
+        if (msg.reply_to_message.from.first_name == botname) {
+            if (msgText == '我是笨蛋') {
+                msgStupid(msg)
+            }
+            if (msgText == '我手賤賤') {
+                msgBitchHand(msg)
+            }
         }
         if (msg.text == '怕') {
             bot.sendMessage(msg.chat.id, "嚇到吃手手", { parse_mode: "markdown", reply_to_message_id: msg.message_id });
