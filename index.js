@@ -124,11 +124,11 @@ bot.on('message', (msg) => {
                 bot.sendMessage(msg.chat.id, resp, { parse_mode: "markdown", reply_to_message_id: msg.message_id });
             }
             if (msgText.indexOf("/echo") > -1) {
-                var resp = msgText.split(' ')[1]
-                if (resp && msg.reply_to_message.message_id) var replyToMsg = msg.reply_to_message.message_id
-                else var replyToMsg = msg.message_id
-                if (!resp) var resp = '靠北喔，你後面沒打東西是要 echo 三小'
-                bot.sendMessage(msg.chat.id, resp, { parse_mode: "HTML", reply_to_message_id: replyToMsg });
+                var resp = msgText.split(' ')[1] ? msgText.split(' ')[1] : '靠北喔，你後面沒打東西是要 echo 三小'
+                var msgReplyTo = msg.reply_to_message ? msg.reply_to_message.message_id : msg.message_id
+                bot.sendMessage(msg.chat.id, resp, { parse_mode: "HTML", reply_to_message_id: msgReplyTo }).then((msgr) => {
+                    bot.deleteMessage(msg.chat.id, msg.message_id)
+                })
             }
             if (msgText.indexOf("/leave") > -1) {
                 if (msg.from.username == 'gnehs_OwO') {
