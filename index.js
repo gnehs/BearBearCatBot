@@ -184,42 +184,15 @@ bot.on('message', (msg) => {
             }
             if (msgText.indexOf("/help") > -1) {
                 var chatId = msg.chat.id;
-                var helpCommand = [{
-                        Command: 'echo [幹話]',
-                        Description: "重複講話(可用 HTML)",
-                    },
-                    {
-                        Command: 'addkbd',
-                        Description: "新增鍵盤",
-                    },
-                    {
-                        Command: 'removekbd',
-                        Description: "移除鍵盤",
-                    },
-                    {
-                        Command: 'viewcombo',
-                        Description: "查看手賤賤及笨蛋的 Combo，回復別人訊息可取得該使用者的 Combo",
-                    },
-                    {
-                        Command: 'cleancombo',
-                        Description: "清除手賤賤及笨蛋的 Combo(無法復原)",
-                    },
-                    {
-                        Command: 'dayoff',
-                        Description: "查看行政院人事行政總處是否公布放假",
-                    },
-                    {
-                        Command: 'about',
-                        Description: "關於" + botData['name'],
-                    },
-                    {
-                        Command: 'leave [Chat ID]',
-                        Description: "離開對話(Admin)",
-                    },
-                    {
-                        Command: 'today',
-                        Description: "今日",
-                    },
+                var helpCommand = [{ Command: 'echo [幹話]', Description: "重複講話(可用 HTML)", },
+                    { Command: 'addkbd', Description: "新增鍵盤", },
+                    { Command: 'removekbd', Description: "移除鍵盤", },
+                    { Command: 'viewcombo', Description: "查看手賤賤及笨蛋的 Combo，回復別人訊息可取得該使用者的 Combo", },
+                    { Command: 'cleancombo', Description: "清除手賤賤及笨蛋的 Combo(無法復原)", },
+                    { Command: 'dayoff', Description: "查看行政院人事行政總處是否公布放假", },
+                    { Command: 'about', Description: "關於" + botData['name'], },
+                    { Command: 'leave [Chat ID]', Description: "離開對話(Admin)", },
+                    { Command: 'today', Description: "今日", },
                 ];
                 var resp = '';
                 for (i in helpCommand) {
