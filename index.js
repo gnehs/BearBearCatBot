@@ -184,30 +184,31 @@ bot.on('message', (msg) => {
             }
             if (msgText.indexOf("/help") > -1) {
                 var chatId = msg.chat.id;
-                var helpCommand = [{ Command: 'echo [幹話]', Description: "重複講話(可用 HTML)", },
+                var helpCommand = [{ Command: 'echo', Description: "[HTML] 重複講話", },
                     { Command: 'addkbd', Description: "新增鍵盤", },
                     { Command: 'removekbd', Description: "移除鍵盤", },
                     { Command: 'viewcombo', Description: "查看手賤賤及笨蛋的 Combo，回復別人訊息可取得該使用者的 Combo", },
                     { Command: 'cleancombo', Description: "清除手賤賤及笨蛋的 Combo(無法復原)", },
                     { Command: 'dayoff', Description: "查看行政院人事行政總處是否公布放假", },
                     { Command: 'about', Description: "關於" + botData['name'], },
-                    { Command: 'leave [Chat ID]', Description: "離開對話(Admin)", },
+                    { Command: 'leave', Description: "[Chat ID] 離開對話(Admin)", },
                     { Command: 'today', Description: "今日", },
+                    { Command: 'start', Description: "開始", },
+                    { Command: 'help', Description: "你在這裡", },
                 ];
+                var helpCommand = helpCommand.sort(function(a, b) { return a.Command > b.Command ? 1 : -1; });
                 var resp = '';
-                for (i in helpCommand) {
-                    var resp = resp + '/' + helpCommand[i].Command + '\n⭐️' + helpCommand[i].Description + '\n';
-                }
-                if (msg.chat.type == 'private') {
-                    bot.sendMessage(chatId, resp, {
-                        reply_to_message_id: msg.message_id,
-                        disable_web_page_preview: true
-                    });
-                } else {
-                    bot.sendMessage(chatId, '請私訊使用', {
-                        reply_to_message_id: msg.message_id
-                    });
-                }
+                if (msgText.match('botfather'))
+                    for (i in helpCommand)
+                        var resp = resp + helpCommand[i].Command + ' - ' + helpCommand[i].Description + '\n';
+                else
+                    for (i in helpCommand)
+                        var resp = resp + '/' + helpCommand[i].Command + ' ⭐️' + helpCommand[i].Description + '\n';
+                if (msg.chat.type == 'private')
+                    bot.sendMessage(chatId, resp, { reply_to_message_id: msg.message_id, disable_web_page_preview: true });
+                else
+                    bot.sendMessage(chatId, '請私訊使用', { reply_to_message_id: msg.message_id });
+
             }
             if (msgText.indexOf("/dayoff") > -1) {
                 bot.sendMessage(msg.chat.id, '聽說改版ㄌ，有放到再敲ㄅㄅㄕ更新', { parse_mode: "markdown", reply_to_message_id: msg.message_id });
