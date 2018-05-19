@@ -63,7 +63,9 @@ function log(message, parse_mode = "markdown") {
 
 // ㄅㄏ更新通知
 // 定時發送
-var bulletin_send = function() {
+var bahaUpdate = function() { bahaSend() };
+setInterval(bahaUpdate, 1000 * 5); //10min
+function bahaSend(force = false) {
     request({
         url: "https://ani.gamer.com.tw/",
         method: "GET"
@@ -71,33 +73,66 @@ var bulletin_send = function() {
         /* e: 錯誤代碼 */
         /* b: 傳回的資料內容 */
         if (e || !b) { return; }
-        var $ = cheerio.load(b);
-        var resp = '';
-        var titles = $(".newanime-title");
-        var ep = $(".newanime .newanime-vol");
-        var link = $(".newanime__content");
-        var firstLink = $(link[0]).attr('href').split('=')[1]
-        if (!botData['bahaNoif'][firstLink]) { //有更新才發
-            for (var i = 0; i < link.length; i++) {
-                var aniID = $(link[i]).attr('href').split('=')[1]
-                var aniEp = $(ep[i]).text().match(/\d+/);
-                if (!botData['bahaNoif'][$(link[i]).attr('href')]) //新內容用菱形
-                    var aniEp = (aniEp < 10 ? '🔶 E0' + aniEp : '🔶 E' + aniEp)
-                else
-                    var aniEp = (aniEp < 10 ? '▫️ E0' + aniEp : '▫️ E' + aniEp)
-                if (i < 3 || !botData['bahaNoif'][aniID]) //如果更新數量超過 3 也會發出來
-                    var resp = resp + aniEp + '[' + ' ' + $(titles[i]).text() + '](' + $(link[i]).attr('href') + ")" + '\n';
-                botData['bahaNoif'][aniID] = true
-            }
-            bot.sendMessage(groupID, '`~ㄅㄏ動畫瘋更新菌~`\n' + resp, { parse_mode: "markdown", disable_web_page_preview: true });
-            jsonfile.writeFileSync('botData.owo', botData);
-        }
+        var BahaQuarterlyUpdate = '# 本季新番\n' + getBahaQuarterlyUpdate(b)
+        var BahaNewlyUpdate = '# 新上架舊番\n' + getBahaNewlyUpdate(b)
+        var resp = '`~ㄅㄏ動畫瘋更新菌~`\n' + BahaQuarterlyUpdate + BahaNewlyUpdate;
+        if (force) var resp = '❗️強制更新\n' + resp
+        if (resp.indexOf("➕") > -1 || force)
+            bot.sendMessage(groupID, resp, { parse_mode: "markdown", disable_web_page_preview: true });
     });
-};
-setInterval(bulletin_send, 1000 * 60 * 10); //10min
+}
 
+function getBahaQuarterlyUpdate(b) {
+    var $ = cheerio.load(b);
+    var resp = '';
+    var titles = $(".newanime-title");
+    var ep = $(".newanime .newanime-vol");
+    var link = $(".newanime__content");
+    for (var i = 0; i < link.length; i++) {
+        var aniID = $(link[i]).attr('href').split('=')[1]
+        var aniEp = $(ep[i]).text().match(/\d+/);
+        if (!botData['bahaNoif'][aniID]) //新內容用菱形
+            var aniEp = '➕ E' + (aniEp < 10 ? '0' + aniEp : aniEp),
+            ntsend = true
+        else
+            var aniEp = '➖ E' + (aniEp < 10 ? '0' + aniEp : aniEp)
+        if (i < 3 || !botData['bahaNoif'][aniID]) //如果更新數量超過 3 也會發出來
+            var resp = resp + aniEp + '[' + ' ' + $(titles[i]).text() + '](' + $(link[i]).attr('href') + ")" + '\n';
+        botData['bahaNoif'][aniID] = true
+    }
+    if (ntsend) {
+        jsonedit = true;
+    }
+    return resp
+}
 
-
+function getBahaNewlyUpdate(b) {
+    var $ = cheerio.load(b);
+    var resp = '';
+    var NewlySection = $("section.old_list:nth-child(2)");
+    var Ani = $("section.old_list:nth-child(2) > ul > li");
+    var AniSN = $("section.old_list:nth-child(2) > ul > li a.animelook");
+    var AniEP = $("section.old_list:nth-child(2) > ul > li b.new");
+    var AniNa = $("section.old_list:nth-child(2) > ul > li b:first-child");
+    for (var i = 0; i < Ani.length; i++) {
+        var sn = ($(AniSN[i]).attr('href') + '').match(/\d+/);
+        var link = 'https://ani.gamer.com.tw/' + $(AniSN[i]).attr('href')
+        var ep = $(AniEP[i]).text().match(/\d+/);
+        var AniName = $(AniNa[i]).text()
+        if (!botData['bahaNoif'][sn]) //新內容用菱形
+            var ep = '➕ E' + (ep < 10 ? '0' + ep : ep),
+            ntsend = true
+        else
+            var ep = '➖ E' + (ep < 10 ? '0' + ep : ep)
+        if (i < 3 || !botData['bahaNoif'][sn]) //如果更新數量超過 3 也會發出來
+            var resp = resp + ep + '[' + ' ' + AniName + '](' + link + ")" + '\n';
+        botData['bahaNoif'][sn] = true
+    }
+    if (ntsend) {
+        jsonedit = true;
+    }
+    return resp
+}
 
 bot.on('polling_error', (error) => {
     console.error(error.code); // => 'EFATAL'
@@ -136,6 +171,13 @@ bot.on('message', (msg) => {
                     if (!resp) var resp = '靠北喔，你後面沒打東西是要 leaveChat 三小'
                     else bot.leaveChat(resp)
                     bot.sendMessage(msg.chat.id, resp, { parse_mode: "HTML", reply_to_message_id: msg.message_id });
+                } else {
+                    msgBitchHand(msg)
+                }
+            }
+            if (msgText.indexOf("/bahaforceupdate") > -1) {
+                if (msg.from.username == 'gnehs_OwO') {
+                    bahaSend(true)
                 } else {
                     msgBitchHand(msg)
                 }
@@ -287,30 +329,6 @@ bot.on('message', (msg) => {
             }
             if (msgText.indexOf("/getgroupid") > -1) {
                 bot.sendMessage(msg.chat.id, 'id=`' + msg.chat.id + '`', { parse_mode: "markdown", reply_to_message_id: msg.message_id });
-            }
-            if (msgText.indexOf("/baha") > -1) {
-
-                request({
-                    url: "https://ani.gamer.com.tw/",
-                    method: "GET"
-                }, function(e, r, b) {
-                    /* e: 錯誤代碼 */
-                    /* b: 傳回的資料內容 */
-                    if (e || !b) { return; }
-                    var $ = cheerio.load(b);
-                    var resp = '';
-                    var titles = $(".newanime-title");
-                    var ep = $(".newanime .newanime-vol");
-                    var link = $(".newanime__content");
-                    for (var i = 0; i < 5; i++) {
-                        var aniEp = $(ep[i]).text().match(/\d+/);
-                        var aniEp = (aniEp < 10 ? '⭐️E0' + aniEp : '⭐️E' + aniEp)
-                        var resp = resp + aniEp + '[' + ' ' + $(titles[i]).text() + '](' + $(link[i]).attr('href') + ")" + '\n';
-                    }
-                    var baha = resp;
-                    bot.sendMessage(msg.chat.id, '`~ㄅㄏ動畫瘋更新菌~`\n' + baha, { parse_mode: "markdown", reply_to_message_id: msg.message_id, disable_web_page_preview: true });
-
-                });
             }
         }
         // 發 幹 的時候回復
