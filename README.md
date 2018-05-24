@@ -1,5 +1,5 @@
 # BearBearCatBot
-熊貓貓，靈魂永生不死
+早安，熊貓貓 Desu
 
 ## 如何啟動熊貓貓
 新增 `secret.json` 文件並裡面填入底下資訊
