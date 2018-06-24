@@ -7,6 +7,10 @@ const token = process.env.TOKEN || botSecret.botToken
 const bot = new TelegramBot(token, { polling: true });
 const request = require("request"); // HTTP 客戶端輔助工具
 const cheerio = require("cheerio"); // Server 端的 jQuery 實作
+const nodejieba = require("nodejieba"); // 中文斷詞
+nodejieba.load({
+    dict: __dirname + '/data/jieba.utf8'
+});
 botData = jsonfile.readFileSync('botData.owo'); // 我手賤賤的記數
 groupID = process.env.GROUPID || "-1001127892867" || "-1001098976262"
 jsonedit = false; //設定檔案是否被編輯
@@ -137,6 +141,104 @@ function getBahaNewlyUpdate(b) {
 bot.on('polling_error', (error) => {
     console.error(error.code); // => 'EFATAL'
 });
+bot.on('inline_query', function(msg) {
+    var msgID = msg.id;
+    var msgQuery = msg.query
+    var msgFrom = msg.from;
+    console.log(msgFrom)
+
+    var results = [];
+    if (msgQuery) {
+        if (/^[0-9]+$/.test(msgQuery)) {
+            // 是數字
+            var uid = {
+                'type': 'article',
+                'id': Math.random().toString(36).substr(2),
+                'title': '輸入 userid',
+                'description': '#UserID_' + msgQuery,
+                'input_message_content': {
+                    'message_text': "<a href='tg://user?id=" + msgQuery + "'>" + msgQuery + "</a>",
+                    'parse_mode': 'html'
+                },
+                'thumb_url': 'https://i.imgur.com/b7Oqdfv.png'
+            };
+            results.push(uid);
+        } else {
+            //不是數字
+            var jieba_message_text = '輸入一些文字...',
+                hshshs_text = '輸入一些文字...'
+            var cut = nodejieba.cutHMM(msgQuery)
+            var jieba_message_text = ' / ',
+                hshshs_text = ''
+            var randomDirty = [
+                '啊啊...',
+                '...啊嘶～',
+                '...那裡...',
+                '...不...不行！',
+                '這...這樣...太...變態了...',
+                '...不...不...要摸...摸...那邊...',
+                '...喵嗚...',
+                '...嗷嗚...',
+                '...好...羞恥...',
+                '啊？你們...',
+                '...可惡！！',
+                '啊！！',
+                '嗯...啊...。',
+                '啊！啊！啊！',
+                '啊...啊......裡面...啊..........',
+                '幹幹...不要！！不要啊！！',
+                '...啊！出來了！啊啊！！',
+                '...不...不...要'
+            ]
+            for (i in cut) {
+                var random = Math.floor(Math.random() * 20)
+                var randomPutin = ''
+                if (random > 16 || (msgQuery.length < 30 && random > 14) || msgQuery.length < 10)
+                    var randomPutin = randomDirty[Math.floor(Math.random() * randomDirty.length)]
+                hshshs_text += cut[i] + randomPutin
+            }
+            for (i in cut) {
+                jieba_message_text += cut[i] + ' / '
+            }
+            var jieba = {
+                'type': 'article',
+                'id': Math.random().toString(36).substr(2),
+                'title': '結巴斷詞',
+                'description': jieba_message_text,
+                'input_message_content': {
+                    'message_text': jieba_message_text
+                }
+            };
+            results.push(jieba);
+            var hshs = {
+                'type': 'article',
+                'id': Math.random().toString(36).substr(2),
+                'title': '髒髒',
+                'description': hshshs_text,
+                'input_message_content': {
+                    'message_text': hshshs_text
+                },
+                'thumb_url': 'https://i.imgur.com/NplDVzN.jpg'
+            };
+
+            results.push(hshs);
+        }
+    }
+    var myuid = {
+        'type': 'article',
+        'id': Math.random().toString(36).substr(2),
+        'title': '傳送您ㄉ userid',
+        'description': '#UserID_' + msg.from.id,
+        'input_message_content': {
+            'message_text': "<a href='tg://user?id=" + msg.from.id + "'>" + msg.from.id + "</a>",
+            'parse_mode': 'html'
+        },
+        'thumb_url': 'https://i.imgur.com/b7Oqdfv.png'
+    };
+    results.push(myuid);
+
+    bot.answerInlineQuery(msgID, results);
+});
 bot.on('message', (msg) => {
     // 當有讀到文字時
     if (msg.text != undefined) {
@@ -151,6 +253,7 @@ bot.on('message', (msg) => {
                 var resp = '哈囉！這裡是' + botData['name'];
                 bot.sendMessage(chatId, resp, { parse_mode: "markdown", reply_to_message_id: msg.message_id });
             }
+
             if (msgText.indexOf("/about") > -1) {
                 var resp = `早安，` + botData['name'] + ` Desu` +
                     '\n---' +
@@ -159,6 +262,13 @@ bot.on('message', (msg) => {
                 bot.sendMessage(msg.chat.id, resp, { parse_mode: "markdown", reply_to_message_id: msg.message_id });
             }
             if (msgText.indexOf("/echo") > -1) {
+                var resp = msgText.split(' ')[1] ? msgText.split(' ')[1] : '靠北喔，你後面沒打東西是要 echo 三小'
+                var msgReplyTo = msg.reply_to_message ? msg.reply_to_message.message_id : msg.message_id
+                bot.sendMessage(msg.chat.id, resp, { parse_mode: "HTML", reply_to_message_id: msgReplyTo }).then((msgr) => {
+                    bot.deleteMessage(msg.chat.id, msg.message_id)
+                })
+            }
+            if (msgText.indexOf("/getUser") > -1) {
                 var resp = msgText.split(' ')[1] ? msgText.split(' ')[1] : '靠北喔，你後面沒打東西是要 echo 三小'
                 var msgReplyTo = msg.reply_to_message ? msg.reply_to_message.message_id : msg.message_id
                 bot.sendMessage(msg.chat.id, resp, { parse_mode: "HTML", reply_to_message_id: msgReplyTo }).then((msgr) => {
@@ -327,14 +437,48 @@ bot.on('message', (msg) => {
         if (msgText.indexOf("喵") === 0) {
             bot.sendMessage(msg.chat.id, "`HTTP /1.1 200 OK.`", { parse_mode: "markdown", reply_to_message_id: msg.message_id });
         }
-        if (msg.reply_to_message.from.first_name == botname) {
-            if (msgText == '我是笨蛋') {
-                msgStupid(msg)
+
+        if (msgText == '我是笨蛋') {
+            var combo = botData.stupid[msg.from.id]
+            if (!combo) {
+                combo = 1;
+            } else {
+                combo++;
             }
-            if (msgText == '我手賤賤') {
-                msgBitchHand(msg)
-            }
+            var resp = "笨笨"
+            var combo_count = "\n⭐️ " + combo + " Combo";
+            if (combo > 4) { var resp = combo_count }
+            if (combo > 20) { var resp = "笨蛋沒有極限" + combo_count }
+            if (combo > 40) { var resp = "你這智障" + combo_count }
+            if (combo > 60) { var resp = combo_count }
+            if (combo > 100) { var resp = "幹你機掰人" + combo_count }
+            bot.sendMessage(msg.chat.id, resp, { reply_to_message_id: msg.message_id });
+            // 寫入字串
+            botData.stupid[msg.from.id] = combo;
+            //存檔偵測
+            jsonedit = true;
         }
+        if (msgText == '我手賤賤') {
+            var combo = botData.bitchHand[msg.from.id]
+            if (!combo) {
+                combo = 1;
+            } else {
+                combo++;
+            }
+            var resp = "走開"
+            var combo_count = "\n⭐️ " + combo + " Combo";
+            if (combo > 4) { var resp = combo_count }
+            if (combo > 20) { var resp = "走開，你這賤人" + combo_count }
+            if (combo > 40) { var resp = "你這臭 Bitch" + combo_count }
+            if (combo > 60) { var resp = combo_count }
+            if (combo > 100) { var resp = "幹你機掰人" + combo_count }
+            bot.sendMessage(msg.chat.id, resp, { reply_to_message_id: msg.message_id });
+            // 寫入字串
+            botData.bitchHand[msg.from.id] = combo;
+            //存檔偵測
+            jsonedit = true;
+        }
+
         if (msg.text == '怕') {
             bot.sendMessage(msg.chat.id, "嚇到吃手手", { parse_mode: "markdown", reply_to_message_id: msg.message_id });
         }
@@ -406,48 +550,6 @@ bot.on('message', (msg) => {
     });
 });
 
-function msgStupid(msg) {
-
-    var combo = botData.stupid[msg.from.id]
-    if (!combo) {
-        var combo = 1;
-    } else {
-        var combo = combo + 1;
-    }
-    var resp = "笨笨"
-    var combo_count = "\n⭐️ " + combo + " Combo";
-    if (combo > 4) { var resp = combo_count }
-    if (combo > 20) { var resp = "笨蛋沒有極限" + combo_count }
-    if (combo > 40) { var resp = "你這智障" + combo_count }
-    if (combo > 60) { var resp = combo_count }
-    if (combo > 100) { var resp = "幹你機掰人" + combo_count }
-    bot.sendMessage(msg.chat.id, resp, { reply_to_message_id: msg.message_id });
-    // 寫入字串
-    botData.stupid[msg.from.id] = combo;
-    //存檔偵測
-    jsonedit = true;
-}
-
-function msgBitchHand(msg) {
-    var combo = botData.bitchHand[msg.from.id]
-    if (!combo) {
-        var combo = 1;
-    } else {
-        var combo = combo + 1;
-    }
-    var resp = "走開"
-    var combo_count = "\n⭐️ " + combo + " Combo";
-    if (combo > 4) { var resp = combo_count }
-    if (combo > 20) { var resp = "走開，你這賤人" + combo_count }
-    if (combo > 40) { var resp = "你這臭 Bitch" + combo_count }
-    if (combo > 60) { var resp = combo_count }
-    if (combo > 100) { var resp = "幹你機掰人" + combo_count }
-    bot.sendMessage(msg.chat.id, resp, { reply_to_message_id: msg.message_id });
-    // 寫入字串
-    botData.bitchHand[msg.from.id] = combo;
-    //存檔偵測
-    jsonedit = true;
-}
 //存檔
 var writeFile = function() {
     if (jsonedit) {
