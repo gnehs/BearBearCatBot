@@ -160,7 +160,7 @@ bot.on('inline_query', function(msg) {
                     'message_text': "<a href='tg://user?id=" + msgQuery + "'>" + msgQuery + "</a>",
                     'parse_mode': 'html'
                 },
-                'thumb_url': 'https://i.imgur.com/b7Oqdfv.png'
+                'thumb_url': 'https://i.imgur.com/asmI4gO.png'
             };
             results.push(uid);
         } else {
@@ -207,7 +207,8 @@ bot.on('inline_query', function(msg) {
                 'description': jieba_message_text,
                 'input_message_content': {
                     'message_text': jieba_message_text
-                }
+                },
+                'thumb_url': 'https://i.imgur.com/Jc2dcTu.png'
             };
             results.push(jieba);
             var hshs = {
