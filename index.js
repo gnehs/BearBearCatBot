@@ -145,99 +145,106 @@ bot.on('inline_query', function(msg) {
     var msgID = msg.id;
     var msgQuery = msg.query
     var msgFrom = msg.from;
-    console.log(msgFrom)
-
     var results = [];
+    //=========== uid
+    if (/^[0-9]+$/.test(msgQuery) && msgQuery.length < 10) {
+        // 是數字
+        var uid = {
+            'type': 'article',
+            'id': Math.random().toString(36).substr(2),
+            'title': '輸入 userid',
+            'description': msgQuery,
+            'input_message_content': {
+                'message_text': "<a href='tg://user?id=" + msgQuery + "'>" + msgQuery + "</a>",
+                'parse_mode': 'html'
+            },
+            'thumb_url': 'https://i.imgur.com/asmI4gO.png'
+        };
+        results.push(uid);
+    }
+    //=========== 結巴分詞
+    var cut = nodejieba.cut(msgQuery);
+    //=========== jieba
     if (msgQuery) {
-        if (/^[0-9]+$/.test(msgQuery)) {
-            // 是數字
-            var uid = {
-                'type': 'article',
-                'id': Math.random().toString(36).substr(2),
-                'title': '輸入 userid',
-                'description': '#UserID_' + msgQuery,
-                'input_message_content': {
-                    'message_text': "<a href='tg://user?id=" + msgQuery + "'>" + msgQuery + "</a>",
-                    'parse_mode': 'html'
-                },
-                'thumb_url': 'https://i.imgur.com/asmI4gO.png'
-            };
-            results.push(uid);
-        } else {
-            //不是數字
-            var jieba_message_text = '輸入一些文字...',
-                hshshs_text = '輸入一些文字...'
-            var cut = nodejieba.cutHMM(msgQuery)
-            var jieba_message_text = ' / ',
-                hshshs_text = ''
-            var randomDirty = [
-                '啊啊...',
-                '...啊嘶～',
-                '...那裡...',
-                '...不...不行！',
-                '這...這樣...太...變態了...',
-                '...不...不...要摸...摸...那邊...',
-                '...喵嗚...',
-                '...嗷嗚...',
-                '...好...羞恥...',
-                '啊？你們...',
-                '...可惡！！',
-                '啊！！',
-                '嗯...啊...。',
-                '啊！啊！啊！',
-                '啊...啊......裡面...啊..........',
-                '幹幹...不要！！不要啊！！',
-                '...啊！出來了！啊啊！！',
-                '...不...不...要'
-            ]
-            for (i in cut) {
-                var random = Math.floor(Math.random() * 20)
-                var randomPutin = ''
-                if (random > 16 || (msgQuery.length < 30 && random > 14) || msgQuery.length < 10)
-                    var randomPutin = randomDirty[Math.floor(Math.random() * randomDirty.length)]
-                hshshs_text += cut[i] + randomPutin
-            }
-            for (i in cut) {
-                jieba_message_text += cut[i] + ' / '
-            }
-            var jieba = {
-                'type': 'article',
-                'id': Math.random().toString(36).substr(2),
-                'title': '結巴斷詞',
-                'description': jieba_message_text,
-                'input_message_content': {
-                    'message_text': jieba_message_text
-                },
-                'thumb_url': 'https://i.imgur.com/Jc2dcTu.png'
-            };
-            results.push(jieba);
-            var hshs = {
-                'type': 'article',
-                'id': Math.random().toString(36).substr(2),
-                'title': '髒髒',
-                'description': hshshs_text,
-                'input_message_content': {
-                    'message_text': hshshs_text
-                },
-                'thumb_url': 'https://i.imgur.com/NplDVzN.jpg'
-            };
-
-            results.push(hshs);
+        var jieba_message_text = '/ ';
+        //結巴分詞
+        for (i in cut) {
+            jieba_message_text += cut[i] + ' / ';
+        }
+        var jieba = {
+            'type': 'article',
+            'id': Math.random().toString(36).substr(2),
+            'title': '結巴斷詞',
+            'description': jieba_message_text,
+            'input_message_content': {
+                'message_text': jieba_message_text
+            },
+            'thumb_url': 'https://i.imgur.com/Jc2dcTu.png'
+        };
+        results.push(jieba);
+    }
+    //=========== hshshs
+    var randomDirty = [
+        '啊啊...',
+        '...啊嘶～',
+        '...那裡...',
+        '...不...不行！',
+        '這...這樣...太...變態了...',
+        '...不...不...要摸...摸...那邊...',
+        '...喵嗚...',
+        '...嗷嗚...',
+        '...好...羞恥...',
+        '...可惡！！',
+        '啊！！',
+        '嗯...啊...。',
+        '啊！啊！啊！',
+        '啊...啊......裡面...啊..........',
+        '幹幹...不要！！不要啊！！',
+        '...啊！出來了！啊啊！！',
+        '...唔、、、',
+        '...不...不...要'
+    ];
+    var hshshs_text = randomDirty[Math.floor(Math.random() * randomDirty.length)];
+    if (msgQuery) {
+        let dirtyCount = 0
+        for (i in cut) {
+            dirtyCount++;
+            var random = Math.floor(Math.random() * 20)
+            var randomPutin = ''
+            if (random > 16 || (msgQuery.length < 30 && random > 14) || (random > 5 && dirtyCount < 10) || dirtyCount < 3)
+                randomPutin += randomDirty[Math.floor(Math.random() * randomDirty.length)]
+            hshshs_text += cut[i] + randomPutin
         }
     }
-    var myuid = {
+    var hshs = {
         'type': 'article',
         'id': Math.random().toString(36).substr(2),
-        'title': '傳送您ㄉ userid',
-        'description': '#UserID_' + msg.from.id,
+        'title': '髒髒',
+        'description': hshshs_text,
         'input_message_content': {
-            'message_text': "<a href='tg://user?id=" + msg.from.id + "'>" + msg.from.id + "</a>",
-            'parse_mode': 'html'
+            'message_text': hshshs_text
         },
-        'thumb_url': 'https://i.imgur.com/b7Oqdfv.png'
+        'thumb_url': 'https://i.imgur.com/NplDVzN.jpg'
     };
-    results.push(myuid);
-
+    results.push(hshs);
+    //=========== myuid 
+    if (!msgQuery) {
+        var myuid = {
+            'type': 'article',
+            'id': Math.random().toString(36).substr(2),
+            'title': '傳送您ㄉ userid',
+            'description': msg.from.id,
+            'input_message_content': {
+                'message_text': "<a href='tg://user?id=" + msg.from.id + "'>" + msg.from.id + "</a>",
+                'parse_mode': 'html'
+            },
+            'thumb_url': 'https://i.imgur.com/b7Oqdfv.png'
+        };
+        results.push(myuid);
+    }
+    //===========
+    //   send
+    //===========
     bot.answerInlineQuery(msgID, results);
 });
 bot.on('message', (msg) => {
