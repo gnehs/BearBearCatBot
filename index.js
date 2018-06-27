@@ -145,6 +145,7 @@ bot.on('inline_query', function(msg) {
     var msgID = msg.id;
     var msgQuery = msg.query
     var msgFrom = msg.from;
+
     var results = [];
     //=========== uid
     if (/^[0-9]+$/.test(msgQuery) && msgQuery.length < 10) {
@@ -157,8 +158,7 @@ bot.on('inline_query', function(msg) {
             'input_message_content': {
                 'message_text': "<a href='tg://user?id=" + msgQuery + "'>" + msgQuery + "</a>",
                 'parse_mode': 'html'
-            },
-            'thumb_url': 'https://i.imgur.com/asmI4gO.png'
+            }
         };
         results.push(uid);
     }
@@ -178,8 +178,7 @@ bot.on('inline_query', function(msg) {
             'description': jieba_message_text,
             'input_message_content': {
                 'message_text': jieba_message_text
-            },
-            'thumb_url': 'https://i.imgur.com/Jc2dcTu.png'
+            }
         };
         results.push(jieba);
     }
@@ -223,8 +222,7 @@ bot.on('inline_query', function(msg) {
         'description': hshshs_text,
         'input_message_content': {
             'message_text': hshshs_text
-        },
-        'thumb_url': 'https://i.imgur.com/NplDVzN.jpg'
+        }
     };
     results.push(hshs);
     //=========== myuid 
@@ -237,11 +235,37 @@ bot.on('inline_query', function(msg) {
             'input_message_content': {
                 'message_text': "<a href='tg://user?id=" + msg.from.id + "'>" + msg.from.id + "</a>",
                 'parse_mode': 'html'
-            },
-            'thumb_url': 'https://i.imgur.com/b7Oqdfv.png'
+            }
         };
         results.push(myuid);
+    };
+    //=========== 運勢 
+    var randomFortune = [
+        '大吉',
+        '中吉',
+        '小吉',
+        '吉',
+        '末吉',
+        '凶',
+        '大凶'
+    ];
+
+    if (msgQuery) {
+        var fortune_desp = '來看看「' + msgQuery + '」ㄉ運勢'
+        var fortune_text = msgQuery + 'ㄉ運勢是「' + randomFortune[Math.floor(Math.random() * randomFortune.length)] + '」';
+    } else {
+        var fortune_desp = '來看看尼ㄉ運勢'
+        var fortune_text = msgFrom.first_name + 'ㄉ運勢是「' + randomFortune[Math.floor(Math.random() * randomFortune.length)] + '」';
     }
+    var fortune = {
+        'type': 'article',
+        'id': Math.random().toString(36).substr(2),
+        'title': '運勢',
+        'description': fortune_desp,
+            'message_text': fortune_text
+        }
+    };
+    results.push(fortune);
     //===========
     //   send
     //===========
