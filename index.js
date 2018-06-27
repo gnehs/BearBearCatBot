@@ -262,6 +262,7 @@ bot.on('inline_query', function(msg) {
         'id': Math.random().toString(36).substr(2),
         'title': '運勢',
         'description': fortune_desp,
+        'input_message_content': {
             'message_text': fortune_text
         }
     };
@@ -269,7 +270,7 @@ bot.on('inline_query', function(msg) {
     //===========
     //   send
     //===========
-    bot.answerInlineQuery(msgID, results);
+    bot.answerInlineQuery(msgID, results, { cache_time: 5 });
 });
 bot.on('message', (msg) => {
     // 當有讀到文字時
