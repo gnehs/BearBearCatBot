@@ -67,8 +67,7 @@ function cleanDayoff() {
 async function getDayoff() {
     //看看資料是不是被清ㄌ
     if (botData.dayoff == '') {
-        var aa = await dayoffReq()
-        return aa
+        return await dayoffReq()
     } else {
         return botData.dayoff
     }
