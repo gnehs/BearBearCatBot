@@ -354,8 +354,7 @@ bot.on('message', (msg) => {
 
             }
             if (msgText.indexOf("/dayoff") > -1) {
-                bot.sendMessage(msg.chat.id, '聽說改版ㄌ，有放到再敲ㄅㄅㄕ更新', { parse_mode: "markdown", reply_to_message_id: msg.message_id });
-                /*request({
+                request({
                     url: "https://www.dgpa.gov.tw/typh/daily/nds.html",
                     method: "GET",
                     rejectUnauthorized: false
@@ -363,17 +362,30 @@ bot.on('message', (msg) => {
                     // e: 錯誤代碼 
                     // b: 傳回的資料內容 
                     if (e || !b) { return; }
-                    var $ = cheerio.load(b);
-                    var resp = '';
-                    var titles = $("body>table:nth-child(2)>tbody>tr>td:nth-child(1)>font:nth-child(1)");
-                    var status = $("body>table:nth-child(2)>tbody>tr>td:nth-child(2)>font:nth-child(1)");
-                    var time = $("td[headers=\"T_PA date\"]>p>font").text();
-                    for (var i = 0; i < titles.length; i++) {
-                        var resp = resp + '*' + $(titles[i]).text() + '*：' + $(status[i]).text() + '\n';
+                    var $ = cheerio.load(b),
+                        resp = '',
+                        city, status, time, city_status, city_name;
+                    city = $('.Table_Body > tr > td:nth-child(1):not([colspan="3"])');
+                    status = $(".Table_Body > tr > td:nth-child(2)");
+                    for (var i = 0; i < city.length; i++) {
+                        city_name = $(city[i]).text()
+                        city_status = $(status[i]).text()
+                            // 加斜體
+                        if (city_status.match(/上午|下午|停止上班|停止上課/)) {
+                            city_status = `_${city_status}_`
+                            city_name = `_${city_name}_`
+                        }
+                        resp += `${city_name} ${city_status}\n`;
                     }
-                    var dayoff = resp + '---\n`詳細及最新情報以` [行政院人事行政總處](goo.gl/GjmZnR) `公告為主`\n' + time;
-                    bot.sendMessage(msg.chat.id, dayoff, { parse_mode: "markdown", reply_to_message_id: msg.message_id });
-                });*/
+                    //更新時間
+                    time = $("div.f_right > h4:nth-child(1)").text().match(/[0-9]+/g);
+                    time = `更新時間 ${time[3]}:${time[4]} `;
+                    //送訊息囉
+                    resp += `---
+\`詳細及最新情報以\` [行政院人事行政總處](goo.gl/GjmZnR) \`公告為主\`
+${time}`;
+                    bot.sendMessage(msg.chat.id, resp, { parse_mode: "markdown", reply_to_message_id: msg.message_id });
+                });
             }
             if (msgText.indexOf("/today") > -1) {
                 request({
