@@ -370,12 +370,10 @@ bot.on('message', (msg) => {
                     for (var i = 0; i < city.length; i++) {
                         city_name = $(city[i]).text()
                         city_status = $(status[i]).text()
-                            // 加斜體
-                        if (city_status.match(/上午|下午|停止上班|停止上課/)) {
-                            city_status = `_${city_status}_`
-                            city_name = `_${city_name}_`
-                        }
-                        resp += `${city_name} ${city_status}\n`;
+                        if (city_status.match(/上午|下午|停止上班|停止上課/))
+                            resp += `⭐️${city_name} ${city_status}\n`;
+                        else
+                            resp += `${city_name} ${city_status}\n`;
                     }
                     //更新時間
                     time = $("div.f_right > h4:nth-child(1)").text().match(/[0-9]+/g);
