@@ -39,18 +39,14 @@ if (!botData.username) {
     botData.username = '';
     console.log('已自動建立 botData.username')
 }
+if (!botData.dayoff) {
+    botData.dayoff = '';
+    console.log('已自動建立 botData.dayoff')
+}
 
 bot.getMe().then(function(me) {
     // 啟動成功
-    // 建立現在時間的物件
-    d = new Date();
-    // 取得 UTC time
-    utc = d.getTime() + (d.getTimezoneOffset() * 60000);
-    // 取得台北時間
-    nd = new Date(utc + (3600000 * 8));
-    var start_time = nd.getFullYear() + '/' + (nd.getMonth() + 1) + '/' + nd.getDate() + ' ' +
-        (nd.getHours() < 10 ? '0' + nd.getHours() : nd.getHours()) + ':' +
-        (nd.getMinutes() < 10 ? '0' + nd.getMinutes() : nd.getMinutes()) + ':' + nd.getSeconds(); // 機器人啟動時間
+    var start_time = new Date().getHours() + ":" + new Date().getMinutes() + ":" + new Date().getSeconds(); // 機器人啟動時間
     botData['name'] = me.first_name
     botData['username'] = me.username
     jsonfile.writeFileSync('botData.owo', botData);
@@ -59,16 +55,62 @@ bot.getMe().then(function(me) {
 // log
 function log(message, parse_mode = "markdown") {
     console.log(message);
-    if (botSecret.logChannelId != undefined) {
-        bot.sendMessage(botSecret.logChannelId, message, { parse_mode: parse_mode });
-        bot.sendMessage(groupID, message, { parse_mode: parse_mode });
+}
+// 颱風資料
+
+setInterval(cleanDayoff, 1000 * 60 * 10); //10min
+function cleanDayoff() {
+    console.log('資料已清除')
+    botData.dayoff = ''; //十分鐘定時清除
+};
+
+async function getDayoff() {
+    //看看資料是不是被清ㄌ
+    if (botData.dayoff == '') {
+        var aa = await dayoffReq()
+        return aa
+    } else {
+        return botData.dayoff
     }
 }
-
+async function dayoffReq() {
+    return new Promise(async(resolve, reject) => {
+        request({
+            url: "https://www.dgpa.gov.tw/typh/daily/nds.html",
+            method: "GET",
+            rejectUnauthorized: false
+        }, function(error, res, body) {
+            if (error || !body) {
+                reject(body);
+            }
+            var $ = cheerio.load(body),
+                city, status, time, city_status, city_name, data = { "typhoon": [], "update_time": "" };
+            city = $('.Table_Body > tr > td:nth-child(1):not([colspan="3"])');
+            status = $(".Table_Body > tr > td:nth-child(2)");
+            for (var i = 0; i < city.length; i++) {
+                city_name = $(city[i]).text()
+                city_status = $(status[i]).text()
+                if (city_status.match(/上午|下午|停止上班|停止上課/))
+                    city_name = `❗️${city_name}`;
+                data.typhoon.push({
+                    "city_name": city_name,
+                    "city_status": city_status
+                })
+            }
+            //更新時間
+            time = $("div.f_right > h4:nth-child(1)").text().match(/[0-9]+/g);
+            data.update_time = `${time[3]}:${time[4]}`
+            botData.dayoff = data
+            resolve(data)
+        })
+    })
+}
 // ㄅㄏ更新通知
 // 定時發送
-var bahaUpdate = function() { bahaSend() };
-setInterval(bahaUpdate, 1000 * 5); //10min
+var bahaUpdate = function() {
+    bahaSend()
+};
+
 function bahaSend(force = false) {
     request({
         url: "https://ani.gamer.com.tw/",
@@ -82,10 +124,10 @@ function bahaSend(force = false) {
         var resp = '`~ㄅㄏ動畫瘋更新菌~`\n' + BahaQuarterlyUpdate + BahaNewlyUpdate;
         if (force) var resp = '❗️強制更新\n' + resp
         if (resp.indexOf("➕") > -1 || force)
-            bot.sendMessage(groupID, resp, { parse_mode: "markdown", disable_web_page_preview: true });
+            bot.sendMessage('-1001059842186', resp, { parse_mode: "markdown", disable_web_page_preview: true });
     });
 }
-
+setInterval(bahaUpdate, 1000 * 60 * 10); //10min
 function getBahaQuarterlyUpdate(b) {
     var $ = cheerio.load(b);
     var resp = '';
@@ -141,7 +183,7 @@ function getBahaNewlyUpdate(b) {
 bot.on('polling_error', (error) => {
     console.error(error.code); // => 'EFATAL'
 });
-bot.on('inline_query', function(msg) {
+bot.on('inline_query', async(msg) => {
     var msgID = msg.id;
     var msgQuery = msg.query
     var msgFrom = msg.from;
@@ -267,12 +309,36 @@ bot.on('inline_query', function(msg) {
         }
     };
     results.push(fortune);
+    //=========== 停班停課 
+    if (msgQuery == "停班停課") {
+        results = []
+        var typhoon_data = await getDayoff(),
+            city_name, city_status, typhoon = ''
+
+        for (var i = 0; i < typhoon_data.typhoon.length; i++) {
+            city_name = typhoon_data.typhoon[i].city_name
+            city_status = typhoon_data.typhoon[i].city_status
+            var typ_msg = `放假小幫手
+${city_name}  ${city_status}
+更新時間：${typhoon_data.update_time}`
+            typhoon = {
+                'type': 'article',
+                'id': Math.random().toString(36).substr(2),
+                'title': city_name + '停班停課資訊',
+                'description': city_status,
+                'input_message_content': {
+                    'message_text': typ_msg
+                }
+            };
+            results.push(typhoon);
+        }
+    }
     //===========
     //   send
     //===========
     bot.answerInlineQuery(msgID, results, { cache_time: 5 });
 });
-bot.on('message', (msg) => {
+bot.on('message', async(msg) => {
     // 當有讀到文字時
     if (msg.text != undefined) {
         let msgText = msg.text.toLowerCase();
@@ -286,7 +352,6 @@ bot.on('message', (msg) => {
                 var resp = '哈囉！這裡是' + botData['name'];
                 bot.sendMessage(chatId, resp, { parse_mode: "markdown", reply_to_message_id: msg.message_id });
             }
-
             if (msgText.indexOf("/about") > -1) {
                 var resp = `早安，` + botData['name'] + ` Desu` +
                     '\n---' +
@@ -314,15 +379,11 @@ bot.on('message', (msg) => {
                     if (!resp) var resp = '靠北喔，你後面沒打東西是要 leaveChat 三小'
                     else bot.leaveChat(resp)
                     bot.sendMessage(msg.chat.id, resp, { parse_mode: "HTML", reply_to_message_id: msg.message_id });
-                } else {
-                    msgBitchHand(msg)
                 }
             }
             if (msgText.indexOf("/bahaforceupdate") > -1) {
                 if (msg.from.username == 'gnehs_OwO') {
                     bahaSend(true)
-                } else {
-                    msgBitchHand(msg)
                 }
             }
             if (msgText.indexOf("/help") > -1) {
@@ -351,39 +412,23 @@ bot.on('message', (msg) => {
                     bot.sendMessage(chatId, resp, { reply_to_message_id: msg.message_id, disable_web_page_preview: true });
                 else
                     bot.sendMessage(chatId, '請私訊使用', { reply_to_message_id: msg.message_id });
-
             }
             if (msgText.indexOf("/dayoff") > -1) {
-                request({
-                    url: "https://www.dgpa.gov.tw/typh/daily/nds.html",
-                    method: "GET",
-                    rejectUnauthorized: false
-                }, function(e, r, b) {
-                    // e: 錯誤代碼 
-                    // b: 傳回的資料內容 
-                    if (e || !b) { return; }
-                    var $ = cheerio.load(b),
-                        resp = '',
-                        city, status, time, city_status, city_name;
-                    city = $('.Table_Body > tr > td:nth-child(1):not([colspan="3"])');
-                    status = $(".Table_Body > tr > td:nth-child(2)");
-                    for (var i = 0; i < city.length; i++) {
-                        city_name = $(city[i]).text()
-                        city_status = $(status[i]).text()
-                        if (city_status.match(/上午|下午|停止上班|停止上課/))
-                            resp += `⭐️${city_name} ${city_status}\n`;
-                        else
-                            resp += `${city_name} ${city_status}\n`;
-                    }
-                    //更新時間
-                    time = $("div.f_right > h4:nth-child(1)").text().match(/[0-9]+/g);
-                    time = `更新時間 ${time[3]}:${time[4]} `;
-                    //送訊息囉
-                    resp += `---
+                var data = await getDayoff(),
+                    resp = ''
+                for (var i = 0; i < data.typhoon.length; i++) {
+                    city_name = data.typhoon[i].city_name
+                    city_status = data.typhoon[i].city_status
+                    resp += `${city_name} ${city_status}\n`;
+                }
+                //更新時間
+                time = `更新時間 ${data.update_time} `;
+                //送訊息囉
+                resp += `---
 \`詳細及最新情報以\` [行政院人事行政總處](goo.gl/GjmZnR) \`公告為主\`
 ${time}`;
-                    bot.sendMessage(msg.chat.id, resp, { parse_mode: "markdown", reply_to_message_id: msg.message_id });
-                });
+                bot.sendMessage(msg.chat.id, resp, { parse_mode: "markdown", reply_to_message_id: msg.message_id });
+
             }
             if (msgText.indexOf("/today") > -1) {
                 request({
@@ -553,44 +598,6 @@ ${time}`;
             }
         }
     }
-    // 將所有傳給機器人的訊息轉到頻道
-    var msgtext = msg.text
-    if (msg.text == undefined)
-        var msgtext = "❓無法辨識之訊息"
-    if (msg.sticker)
-        var msgtext = msg.sticker.emoji + "️貼圖 " + msg.sticker.set_name
-    if (msg.document)
-        var msgtext = "📄檔案 " + msg.document.file_name
-    if (msg.photo)
-        var msgtext = "🖼圖片"
-    if (msg.audio)
-        var msgtext = "🎵音訊"
-    if (msg.new_chat_members)
-        var msgtext = "➕新成員"
-
-    var opt = { parse_mode: "HTML", disable_web_page_preview: true }
-
-    var SendLog2Ch = "<code>[訊息]</code>" +
-        "<code>" +
-        "\n 用戶：" + msg.from.first_name + " @" + msg.from.username +
-        "\n 聊天：" + msg.chat.title + " | " + msg.chat.id + " | " + msg.chat.type +
-        "\n 編號：" + msg.message_id +
-        "\n 時間：" + msg.date +
-        "\n 訊息：" + msgtext + "</code>" +
-        "\n<a href='tg://user?id=" + msg.from.id + "'>#UserName_" + msg.from.username + "</a> #Name_" + msg.from.first_name + " #UserID_" + msg.from.id
-    bot.sendMessage(botSecret.logChannelId, SendLog2Ch, opt).then((returnmsg) => {
-        if (msg.sticker)
-            bot.sendSticker(botSecret.logChannelId, msg.sticker.file_id, { reply_to_message_id: returnmsg.message_id })
-        if (msg.document)
-            bot.sendSticker(botSecret.logChannelId, msg.document.file_id, { reply_to_message_id: returnmsg.message_id })
-        if (msg.photo)
-            bot.sendPhoto(botSecret.logChannelId, msg.photo.file_id, { reply_to_message_id: returnmsg.message_id })
-        if (msg.audio)
-            bot.sendAudio(botSecret.logChannelId, msg.audio.file_id, { reply_to_message_id: returnmsg.message_id })
-        if (msgtext == "❓無法辨識之訊息")
-            bot.forwardMessage(botSecret.logChannelId, msg.chat.id, msg.message_id)
-
-    });
 });
 
 //存檔
