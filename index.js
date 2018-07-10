@@ -60,7 +60,6 @@ function log(message, parse_mode = "markdown") {
 
 setInterval(cleanDayoff, 1000 * 60 * 10); //10min
 function cleanDayoff() {
-    console.log('資料已清除')
     botData.dayoff = ''; //十分鐘定時清除
 };
 
