@@ -87,9 +87,14 @@ async function dayoffReq() {
             status = $(".Table_Body > tr > td:nth-child(2)");
             for (var i = 0; i < city.length; i++) {
                 city_name = $(city[i]).text()
-                city_status = $(status[i]).text()
+                city_status = $(status[i]).text().replace(/。/g, "。\n").replace(/ /g, "").trim()
+                if (city_status.length > 40)
+                    city_status = city_status.substring(0, 40) + '...'
                 if (city_status.match(/上午|下午|停止上班|停止上課/))
                     city_name = `❗️${city_name}`;
+                else
+                    city_name = `🔹${city_name}`;
+
                 data.typhoon.push({
                     "city_name": city_name,
                     "city_status": city_status
@@ -97,7 +102,7 @@ async function dayoffReq() {
             }
             //更新時間
             time = $("div.f_right > h4:nth-child(1)").text().match(/[0-9]+/g);
-            data.update_time = `${time[3]}:${time[4]}`
+            data.update_time = `${time[3]}:${time[4]}:${time[5]}`
             botData.dayoff = data
             resolve(data)
         })
@@ -308,7 +313,7 @@ bot.on('inline_query', async(msg) => {
     };
     results.push(fortune);
     //=========== 停班停課 
-    if (msgQuery == "停班停課") {
+    if (msgQuery == "停班停課" || msgQuery == "放假") {
         results = []
         var typhoon_data = await getDayoff(),
             city_name, city_status, typhoon = ''
@@ -316,16 +321,17 @@ bot.on('inline_query', async(msg) => {
         for (var i = 0; i < typhoon_data.typhoon.length; i++) {
             city_name = typhoon_data.typhoon[i].city_name
             city_status = typhoon_data.typhoon[i].city_status
-            var typ_msg = `放假小幫手
+            var typ_msg = `*放假小幫手* ${typhoon_data.update_time}
 ${city_name}  ${city_status}
-更新時間：${typhoon_data.update_time}`
+\`最新詳細情報請查看\` [行政院人事行政總處](goo.gl/GjmZnR)`
             typhoon = {
                 'type': 'article',
                 'id': Math.random().toString(36).substr(2),
                 'title': city_name + '停班停課資訊',
                 'description': city_status,
                 'input_message_content': {
-                    'message_text': typ_msg
+                    'message_text': typ_msg,
+                    "parse_mode": "markdown"
                 }
             };
             results.push(typhoon);
