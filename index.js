@@ -265,6 +265,20 @@ bot.on('inline_query', async(msg) => {
         }
     };
     results.push(hshs);
+    //=========== myuid 
+    if (!msgQuery) {
+        var myuid = {
+            'type': 'article',
+            'id': Math.random().toString(36).substr(2),
+            'title': '傳送您ㄉ userid',
+            'description': msg.from.id,
+            'input_message_content': {
+                'message_text': "<a href='tg://user?id=" + msg.from.id + "'>" + msg.from.id + "</a>",
+                'parse_mode': 'html'
+            }
+        };
+        results.push(myuid);
+    };
     //=========== 運勢 
     var randomFortune = [
         '大吉',
@@ -320,7 +334,7 @@ ${city_name}  ${city_status}
     //===========
     //   send
     //===========
-    bot.answerInlineQuery(msgID, results, { cache_time: 5 });
+    bot.answerInlineQuery(msgID, results, { is_personal: true });
 });
 bot.on('message', async(msg) => {
     // 當有讀到文字時
