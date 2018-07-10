@@ -265,20 +265,6 @@ bot.on('inline_query', async(msg) => {
         }
     };
     results.push(hshs);
-    //=========== myuid 
-    if (!msgQuery) {
-        var myuid = {
-            'type': 'article',
-            'id': Math.random().toString(36).substr(2),
-            'title': '傳送您ㄉ userid',
-            'description': msg.from.id,
-            'input_message_content': {
-                'message_text': "<a href='tg://user?id=" + msg.from.id + "'>" + msg.from.id + "</a>",
-                'parse_mode': 'html'
-            }
-        };
-        results.push(myuid);
-    };
     //=========== 運勢 
     var randomFortune = [
         '大吉',
@@ -509,10 +495,8 @@ ${time}`;
         if (msgText.indexOf("ping") === 0) {
             bot.sendMessage(msg.chat.id, "<b>PONG</b>", { parse_mode: "HTML", reply_to_message_id: msg.message_id });
         }
-        if (msgText.indexOf("貼圖") > -1) {
-            if (msgText.indexOf("請問") > -1 || msgText.indexOf("求") > -1 || msgText.indexOf("有") > -1) {
-                bot.sendMessage(msg.chat.id, "詢問或發佈貼圖時請使用標籤，這樣才能被正確索引\n像是 `#詢問 #妖嬌美麗的恐龍 #會飛的`\n*＊本功能測試中，誤報請私* [@gnehs_OwO](https://t.me/gnehs_OwO) ＊", { parse_mode: "markdown", reply_to_message_id: msg.message_id, disable_web_page_preview: true });
-            }
+        if (msg.text == '怕') {
+            bot.sendMessage(msg.chat.id, "嚇到吃手手", { parse_mode: "markdown", reply_to_message_id: msg.message_id });
         }
         if (msgText.indexOf("ㄈㄓ") === 0) {
             bot.sendMessage(msg.chat.id, "油", { reply_to_message_id: msg.message_id });
@@ -563,10 +547,6 @@ ${time}`;
             botData.bitchHand[msg.from.id] = combo;
             //存檔偵測
             jsonedit = true;
-        }
-
-        if (msg.text == '怕') {
-            bot.sendMessage(msg.chat.id, "嚇到吃手手", { parse_mode: "markdown", reply_to_message_id: msg.message_id });
         }
     }
 });
