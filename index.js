@@ -124,10 +124,10 @@ function bahaSend(force = false) {
         if (e || !b) { return; }
         var BahaQuarterlyUpdate = '# 本季新番\n' + getBahaQuarterlyUpdate(b)
         var BahaNewlyUpdate = '# 新上架舊番\n' + getBahaNewlyUpdate(b)
-        var resp = '`~ㄅㄏ動畫瘋更新菌~`\n' + BahaQuarterlyUpdate + BahaNewlyUpdate;
-        if (force) var resp = '❗️強制更新\n' + resp
+        var resp = '<code>~ㄅㄏ動畫瘋更新菌~</code>\n' + BahaQuarterlyUpdate + BahaNewlyUpdate;
+        if (force) resp += '❗️強制更新\n'
         if (resp.indexOf("➕") > -1 || force)
-            bot.sendMessage('-1001059842186', resp, { parse_mode: "markdown", disable_web_page_preview: true });
+            bot.sendMessage('-1001059842186', resp, { parse_mode: "html", disable_web_page_preview: true });
     });
 }
 setInterval(bahaUpdate, 1000 * 60 * 10); //10min
@@ -146,7 +146,7 @@ function getBahaQuarterlyUpdate(b) {
         else
             var aniEp = '➖ E' + (aniEp < 10 ? '0' + aniEp : aniEp)
         if (i < 3 || !botData['bahaNoif'][aniID]) //如果更新數量超過 3 也會發出來
-            var resp = resp + aniEp + '[' + ' ' + $(titles[i]).text() + '](' + $(link[i]).attr('href') + ")" + '\n';
+            resp += `${aniEp} <a href="${$(link[i]).attr('href')}">${$(titles[i]).text()}</a>\n`;
         botData['bahaNoif'][aniID] = true
     }
     if (ntsend) {
@@ -174,7 +174,7 @@ function getBahaNewlyUpdate(b) {
         else
             var ep = '➖ E' + (ep < 10 ? '0' + ep : ep)
         if (i < 3 || !botData['bahaNoif'][sn]) //如果更新數量超過 3 也會發出來
-            var resp = resp + ep + '[' + ' ' + AniName + '](' + link + ")" + '\n';
+            resp += `${ep} <a href="${link}">${AniName}</a>\n`;
         botData['bahaNoif'][sn] = true
     }
     if (ntsend) {
