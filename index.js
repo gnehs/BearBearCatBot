@@ -294,14 +294,9 @@ bot.on('inline_query', async(msg) => {
         '凶',
         '大凶'
     ];
-
-    if (msgQuery) {
-        var fortune_desp = '來看看「' + msgQuery + '」ㄉ運勢'
-        var fortune_text = msgQuery + 'ㄉ運勢是「' + randomFortune[Math.floor(Math.random() * randomFortune.length)] + '」';
-    } else {
-        var fortune_desp = '來看看尼ㄉ運勢'
-        var fortune_text = msgFrom.first_name + 'ㄉ運勢是「' + randomFortune[Math.floor(Math.random() * randomFortune.length)] + '」';
-    }
+    var FortuneRandomResult = randomFortune[Math.floor(Math.random() * randomFortune.length)]
+    var fortune_desp = msgQuery ? `來看看${msgQuery}ㄉ運勢` : '來看看尼ㄉ運勢'
+    var fortune_text = msgQuery ? `${msgQuery}ㄉ運勢是「${FortuneRandomResult}」` : `${msgFrom.first_name}ㄉ運勢是「${FortuneRandomResult}」`
     var fortune = {
         'type': 'article',
         'id': Math.random().toString(36).substr(2),
