@@ -43,6 +43,10 @@ if (!botData.dayoff) {
     botData.dayoff = '';
     console.log('已自動建立 botData.dayoff')
 }
+if (!botData.admin) {
+    botData.admin = { 215616188: true };
+    console.log('已自動建立 botData.admin')
+}
 
 bot.getMe().then(function(me) {
     // 啟動成功
@@ -195,7 +199,7 @@ bot.on('inline_query', async(msg) => {
     //=========== uid
     if (/^[0-9]+$/.test(msgQuery) && msgQuery.length < 10) {
         // 是數字
-        var uid = {
+        results.push({
             'type': 'article',
             'id': Math.random().toString(36).substr(2),
             'title': '輸入 userid',
@@ -204,8 +208,7 @@ bot.on('inline_query', async(msg) => {
                 'message_text': "<a href='tg://user?id=" + msgQuery + "'>" + msgQuery + "</a>",
                 'parse_mode': 'html'
             }
-        };
-        results.push(uid);
+        });
     }
     //=========== 結巴分詞
     var cut = nodejieba.cut(msgQuery);
@@ -216,7 +219,7 @@ bot.on('inline_query', async(msg) => {
         for (i in cut) {
             jieba_message_text += cut[i] + ' / ';
         }
-        var jieba = {
+        results.push({
             'type': 'article',
             'id': Math.random().toString(36).substr(2),
             'title': '結巴斷詞',
@@ -224,8 +227,7 @@ bot.on('inline_query', async(msg) => {
             'input_message_content': {
                 'message_text': jieba_message_text
             }
-        };
-        results.push(jieba);
+        });
     }
     //=========== hshshs
     var randomDirty = [
@@ -260,7 +262,7 @@ bot.on('inline_query', async(msg) => {
             hshshs_text += cut[i] + randomPutin
         }
     }
-    var hshs = {
+    results.push({
         'type': 'article',
         'id': Math.random().toString(36).substr(2),
         'title': '髒髒',
@@ -268,11 +270,10 @@ bot.on('inline_query', async(msg) => {
         'input_message_content': {
             'message_text': hshshs_text
         }
-    };
-    results.push(hshs);
+    });
     //=========== myuid 
     if (!msgQuery) {
-        var myuid = {
+        results.push({
             'type': 'article',
             'id': Math.random().toString(36).substr(2),
             'title': '傳送您ㄉ userid',
@@ -281,32 +282,36 @@ bot.on('inline_query', async(msg) => {
                 'message_text': "<a href='tg://user?id=" + msg.from.id + "'>" + msg.from.id + "</a>",
                 'parse_mode': 'html'
             }
-        };
-        results.push(myuid);
+        });
     };
     //=========== 運勢 
-    var randomFortune = [
+
+    let randomFortune = [
         '大吉',
         '中吉',
-        '小吉',
         '吉',
+        '小吉',
         '末吉',
         '凶',
         '大凶'
     ];
-    var FortuneRandomResult = randomFortune[Math.floor(Math.random() * randomFortune.length)]
-    var fortune_desp = msgQuery ? `來看看${msgQuery}ㄉ運勢` : '來看看尼ㄉ運勢'
-    var fortune_text = msgQuery ? `${msgQuery}ㄉ運勢是「${FortuneRandomResult}」` : `${msgFrom.first_name}ㄉ運勢是「${FortuneRandomResult}」`
-    var fortune = {
-        'type': 'article',
-        'id': Math.random().toString(36).substr(2),
-        'title': '運勢',
-        'description': fortune_desp,
-        'input_message_content': {
-            'message_text': fortune_text
-        }
-    };
-    results.push(fortune);
+
+    function fortune(str) {
+        let FortuneRandomResult = str
+        let fortune_desp = msgQuery ? `來看看${msgQuery}ㄉ運勢` : '來看看尼ㄉ運勢'
+        let fortune_text = msgQuery ? `${msgQuery}ㄉ運勢是「${FortuneRandomResult}」` : `${msgFrom.first_name}ㄉ運勢是「${FortuneRandomResult}」`
+        results.push({
+            'type': 'article',
+            'id': Math.random().toString(36).substr(2),
+            'title': `運勢`,
+            'description': fortune_desp,
+            'input_message_content': {
+                'message_text': fortune_text
+            }
+        });
+    }
+    fortune(randomFortune[Math.floor(Math.random() * randomFortune.length)])
+
     //=========== 停班停課 
     if (msgQuery == "停班停課" || msgQuery == "放假") {
         results = []
@@ -316,10 +321,10 @@ bot.on('inline_query', async(msg) => {
         for (var i = 0; i < typhoon_data.typhoon.length; i++) {
             city_name = typhoon_data.typhoon[i].city_name
             city_status = typhoon_data.typhoon[i].city_status
-            var typ_msg = `*放假小幫手* ${typhoon_data.update_time}
+            let typ_msg = `*放假小幫手* ${typhoon_data.update_time}
 ${city_name}  ${city_status}
 \`最新詳細情報請查看\` [行政院人事行政總處](goo.gl/GjmZnR)`
-            typhoon = {
+            results.push({
                 'type': 'article',
                 'id': Math.random().toString(36).substr(2),
                 'title': city_name + '停班停課資訊',
@@ -328,8 +333,7 @@ ${city_name}  ${city_status}
                     'message_text': typ_msg,
                     "parse_mode": "markdown"
                 }
-            };
-            results.push(typhoon);
+            });
         }
     }
     //===========
@@ -503,11 +507,11 @@ ${time}`;
             }
         }
         // 發 幹 的時候回復
-        if (msgText.indexOf("幹") === 0) {
+        if (msgText.match(/幹|幹你娘|趕羚羊/) && !msgText.match(/幹嘛/)) {
             bot.sendMessage(msg.chat.id, "<i>QQ</i>", { parse_mode: "HTML", reply_to_message_id: msg.message_id });
         }
         // 發 Ping 的時候回復
-        if (msgText.indexOf("ping") === 0) {
+        if (msgText == "ping") {
             bot.sendMessage(msg.chat.id, "<b>PONG</b>", { parse_mode: "HTML", reply_to_message_id: msg.message_id });
         }
         if (msg.text == '怕') {
