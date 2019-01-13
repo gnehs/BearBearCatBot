@@ -229,8 +229,8 @@ bot.on('inline_query', async (msg) => {
     if (msgQuery) {
         var jieba_message_text = '/ ';
         //結巴分詞
-        for (i in cut) {
-            jieba_message_text += cut[i] + ' / ';
+        for (i of cut) {
+            jieba_message_text += i + ' / ';
         }
         results.push({
             'type': 'article',
@@ -311,8 +311,9 @@ bot.on('inline_query', async (msg) => {
 
     function fortune(str) {
         let FortuneRandomResult = str
+        let name = msgQuery ? msgQuery : msgFrom.first_name
         let fortune_desp = msgQuery ? `來看看${msgQuery}ㄉ運勢` : '來看看尼ㄉ運勢'
-        let fortune_text = msgQuery ? `${msgQuery}ㄉ運勢是「${FortuneRandomResult}」` : `${msgFrom.first_name}ㄉ運勢是「${FortuneRandomResult}」`
+        let fortune_text = `${name}ㄉ運勢是「${FortuneRandomResult}」`
         results.push({
             'type': 'article',
             'id': Math.random().toString(36).substr(2),
@@ -331,9 +332,9 @@ bot.on('inline_query', async (msg) => {
         var typhoon_data = await getDayoff(),
             city_name, city_status, typhoon = ''
 
-        for (var i = 0; i < typhoon_data.typhoon.length; i++) {
-            city_name = typhoon_data.typhoon[i].city_name
-            city_status = typhoon_data.typhoon[i].city_status
+        for (item of typhoon_data.typhoon) {
+            city_name = item.city_name
+            city_status = item.city_status
             let typ_msg = `*放假小幫手* ${typhoon_data.update_time}
 ${city_name}  ${city_status}
 \`最新詳細情報請查看\` [行政院人事行政總處](goo.gl/GjmZnR)`
@@ -367,14 +368,15 @@ bot.on('message', async (msg) => {
 
             if (msgText.indexOf("/start") > -1) {
                 var chatId = msg.chat.id;
-                var resp = `哈囉！這裡是${botData['name']}\nchatid:\`${chatId}\``;
+                var userId = msg.from.id;
+                var resp = `哈囉！這裡是${botData['name']}\n--- info ---\nchatid: \`${chatId}\`\nuserId: \`${userId}\``;
                 bot.sendMessage(chatId, resp, {
                     parse_mode: "markdown",
                     reply_to_message_id: msg.message_id
                 });
             }
             if (msgText.indexOf("/about") > -1) {
-                var resp = `早安，` + botData['name'] + ` Desu` +
+                var resp = `早安，${botData['name']} Desu` +
                     '\n---' +
                     '\nGitHub / git.io/BearBearCatBot' +
                     '\n開發者  / git.io/gnehs'
@@ -384,8 +386,12 @@ bot.on('message', async (msg) => {
                 });
             }
             if (msgText.indexOf("/echo") > -1) {
-                var resp = msgText.split(' ')[1] ? msgText.split(' ')[1] : '靠北喔，你後面沒打東西是要 echo 三小'
-                var msgReplyTo = msg.reply_to_message ? msg.reply_to_message.message_id : msg.message_id
+                let resp = msgText.split(' ')[1]
+                let msgReplyTo = msg.reply_to_message ? msg.reply_to_message.message_id : msg.message_id
+                if (!resp) {
+                    resp = '靠北喔，你後面沒打東西是要 echo 三小'
+                    msgReplyTo = msg.message_id
+                }
                 bot.sendMessage(msg.chat.id, resp, {
                     parse_mode: "HTML",
                     reply_to_message_id: msgReplyTo
@@ -393,14 +399,22 @@ bot.on('message', async (msg) => {
                     bot.deleteMessage(msg.chat.id, msg.message_id)
                 })
             }
-            if (msgText.indexOf("/getUser") > -1) {
-                var resp = msgText.split(' ')[1] ? msgText.split(' ')[1] : '靠北喔，你後面沒打東西是要 echo 三小'
-                var msgReplyTo = msg.reply_to_message ? msg.reply_to_message.message_id : msg.message_id
+            if (msgText.indexOf("/getuser") > -1) {
+                let from, resp
+                if (msg.reply_to_message) {
+                    from = msg.reply_to_message.from
+                } else {
+                    from = msg.from
+                }
+                resp = ""
+                resp += `id: <code>${from.id}</code>\n`
+                resp += `isBot: <code>${from.is_bot?'⭕️':'❌'}</code>\n`
+                resp += `firstName: <code>${from.first_name}</code>\n`
+                resp += `username: <code>${from.username}</code>\n`
+                resp += `langCode: <code>${from.language_code}</code>\n`
                 bot.sendMessage(msg.chat.id, resp, {
                     parse_mode: "HTML",
-                    reply_to_message_id: msgReplyTo
-                }).then((msgr) => {
-                    bot.deleteMessage(msg.chat.id, msg.message_id)
+                    reply_to_message_id: msg.message_id
                 })
             }
             if (msgText.indexOf("/leave") > -1) {
