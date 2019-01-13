@@ -4,7 +4,9 @@ const jsonfile = require('jsonfile'); //讀 json 的咚咚
 const botSecret = jsonfile.readFileSync('secret.json'); // bot 資訊
 const TelegramBot = require('node-telegram-bot-api'); //api
 const token = process.env.TOKEN || botSecret.botToken
-const bot = new TelegramBot(token, { polling: true });
+const bot = new TelegramBot(token, {
+    polling: true
+});
 const request = require("request"); // HTTP 客戶端輔助工具
 const cheerio = require("cheerio"); // Server 端的 jQuery 實作
 const nodejieba = require("nodejieba"); // 中文斷詞
@@ -44,11 +46,13 @@ if (!botData.dayoff) {
     console.log('已自動建立 botData.dayoff')
 }
 if (!botData.admin) {
-    botData.admin = { 215616188: true };
+    botData.admin = {
+        215616188: true
+    };
     console.log('已自動建立 botData.admin')
 }
 
-bot.getMe().then(function(me) {
+bot.getMe().then(function (me) {
     // 啟動成功
     var start_time = new Date().getHours() + ":" + new Date().getMinutes() + ":" + new Date().getSeconds(); // 機器人啟動時間
     botData['name'] = me.first_name
@@ -76,17 +80,20 @@ async function getDayoff() {
     }
 }
 async function dayoffReq() {
-    return new Promise(async(resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
         request({
             url: "https://www.dgpa.gov.tw/typh/daily/nds.html",
             method: "GET",
             rejectUnauthorized: false
-        }, function(error, res, body) {
+        }, function (error, res, body) {
             if (error || !body) {
                 reject(body);
             }
             var $ = cheerio.load(body),
-                city, status, time, city_status, city_name, data = { "typhoon": [], "update_time": "" };
+                city, status, time, city_status, city_name, data = {
+                    "typhoon": [],
+                    "update_time": ""
+                };
             city = $('.Table_Body > tr > td:nth-child(1):not([colspan="3"])');
             status = $(".Table_Body > tr > td:nth-child(2)");
             for (var i = 0; i < city.length; i++) {
@@ -114,7 +121,7 @@ async function dayoffReq() {
 }
 // ㄅㄏ更新通知
 // 定時發送
-var bahaUpdate = function() {
+var bahaUpdate = function () {
     bahaSend()
 };
 
@@ -122,75 +129,81 @@ function bahaSend(force = false) {
     request({
         url: "https://ani.gamer.com.tw/",
         method: "GET"
-    }, function(e, r, b) {
+    }, function (e, r, b) {
         /* e: 錯誤代碼 */
         /* b: 傳回的資料內容 */
-        if (e || !b) { return; }
-        var BahaQuarterlyUpdate = '# 本季新番\n' + getBahaQuarterlyUpdate(b)
-        var BahaNewlyUpdate = '# 新上架舊番\n' + getBahaNewlyUpdate(b)
-        var resp = '<code>~ㄅㄏ動畫瘋更新菌~</code>\n' + BahaQuarterlyUpdate + BahaNewlyUpdate;
+        if (e || !b) return;
+
+        let resp = `#ㄅㄏ動畫瘋更新菌\n`
+        let updated = false
+
+        let BahaQuarterlyUpdate = getBahaQuarterlyUpdate(b)
+        var BahaNewlyUpdate = getBahaNewlyUpdate(b)
+
+        if (BahaQuarterlyUpdate) resp += '# 新番\n' + BahaQuarterlyUpdate, updated = true
+        if (BahaNewlyUpdate) resp += '# 新上架舊番\n' + BahaNewlyUpdate, updated = true
+
         if (force) resp += '❗️強制更新\n'
-        if (resp.indexOf("➕") > -1 || force)
-            bot.sendMessage('-1001059842186', resp, { parse_mode: "html", disable_web_page_preview: true });
+        if (updated || force)
+            bot.sendMessage('-1001059842186', resp, {
+                parse_mode: "html",
+                disable_web_page_preview: true
+            });
     });
 }
 setInterval(bahaUpdate, 1000 * 60 * 10); //10min
 function getBahaQuarterlyUpdate(b) {
-    var $ = cheerio.load(b);
-    var resp = '';
-    var titles = $(".newanime-title");
-    var ep = $(".newanime .newanime-vol");
-    var link = $(".newanime__content");
-    for (var i = 0; i < link.length; i++) {
-        var aniID = $(link[i]).attr('href').split('=')[1]
-        var aniEp = $(ep[i]).text().match(/\d+/);
-        if (!botData['bahaNoif'][aniID]) //新內容用菱形
-            var aniEp = '➕ E' + (aniEp < 10 ? '0' + aniEp : aniEp),
+    let ntsend = false
+    let $ = cheerio.load(b);
+    let resp = '';
+    let titles = $(".newanime-title");
+    let ep = $(".newanime .newanime-vol");
+    let links = $(".newanime__content");
+
+    for (var i = 0; i < links.length; i++) {
+        let link = $(links[i]).attr('href')
+        let aniName = $(titles[i]).text()
+        let aniID = $(links[i]).attr('href').split('=')[1]
+        let aniEp = $(ep[i]).text().match(/\d+/);
+        if (!botData['bahaNoif'][aniID]) {
+            aniEp = (aniEp < 10 ? '0' + aniEp : aniEp)
             ntsend = true
-        else
-            var aniEp = '➖ E' + (aniEp < 10 ? '0' + aniEp : aniEp)
-        if (i < 3 || !botData['bahaNoif'][aniID]) //如果更新數量超過 3 也會發出來
-            resp += `${aniEp} <a href="${$(link[i]).attr('href')}">${$(titles[i]).text()}</a>\n`;
-        botData['bahaNoif'][aniID] = true
+            resp += `E${aniEp} <a href="${link}">${aniName}</a>\n`
+            botData['bahaNoif'][aniID] = true
+        }
     }
-    if (ntsend) {
-        jsonedit = true;
-    }
-    return resp
+    if (ntsend) jsonedit = true;
+    return ntsend ? resp : ntsend
 }
 
 function getBahaNewlyUpdate(b) {
-    var $ = cheerio.load(b);
-    var resp = '';
-    var NewlySection = $("section.old_list:nth-child(2)");
-    var Ani = $("section.old_list:nth-child(2) > ul > li");
-    var AniSN = $("section.old_list:nth-child(2) > ul > li a.animelook");
-    var AniEP = $("section.old_list:nth-child(2) > ul > li b.new");
-    var AniNa = $("section.old_list:nth-child(2) > ul > li b:first-child");
+    let $ = cheerio.load(b);
+    let ntsend = false
+    let resp = '';
+    let Ani = $("section.old_list:nth-child(2) > ul > li");
+    let AniSN = $("section.old_list:nth-child(2) > ul > li a.animelook");
+    let AniEP = $("section.old_list:nth-child(2) > ul > li b.new");
+    let AniNa = $("section.old_list:nth-child(2) > ul > li b:first-child");
     for (var i = 0; i < Ani.length; i++) {
-        var sn = ($(AniSN[i]).attr('href') + '').match(/\d+/);
-        var link = 'https://ani.gamer.com.tw/' + $(AniSN[i]).attr('href')
-        var ep = $(AniEP[i]).text().match(/\d+/);
-        var AniName = $(AniNa[i]).text()
-        if (!botData['bahaNoif'][sn]) //新內容用菱形
-            var ep = '➕ E' + (ep < 10 ? '0' + ep : ep),
+        let sn = ($(AniSN[i]).attr('href') + '').match(/\d+/);
+        let link = 'https://ani.gamer.com.tw/' + $(AniSN[i]).attr('href')
+        let ep = $(AniEP[i]).text().match(/\d+/);
+        let AniName = $(AniNa[i]).text()
+        if (!botData['bahaNoif'][sn]) {
+            ep = (ep < 10 ? '0' + ep : ep)
             ntsend = true
-        else
-            var ep = '➖ E' + (ep < 10 ? '0' + ep : ep)
-        if (i < 3 || !botData['bahaNoif'][sn]) //如果更新數量超過 3 也會發出來
-            resp += `${ep} <a href="${link}">${AniName}</a>\n`;
-        botData['bahaNoif'][sn] = true
+            resp += `E${ep} <a href="${link}">${AniName}</a>\n`
+            botData['bahaNoif'][sn] = true
+        }
     }
-    if (ntsend) {
-        jsonedit = true;
-    }
-    return resp
+    if (ntsend) jsonedit = true;
+    return ntsend ? resp : ntsend
 }
 
 bot.on('polling_error', (error) => {
     console.error(error.code); // => 'EFATAL'
 });
-bot.on('inline_query', async(msg) => {
+bot.on('inline_query', async (msg) => {
     var msgID = msg.id;
     var msgQuery = msg.query
     var msgFrom = msg.from;
@@ -339,9 +352,11 @@ ${city_name}  ${city_status}
     //===========
     //   send
     //===========
-    bot.answerInlineQuery(msgID, results, { is_personal: true });
+    bot.answerInlineQuery(msgID, results, {
+        is_personal: true
+    });
 });
-bot.on('message', async(msg) => {
+bot.on('message', async (msg) => {
     // 當有讀到文字時
     if (msg.text != undefined) {
         let msgText = msg.text.toLowerCase();
@@ -352,27 +367,39 @@ bot.on('message', async(msg) => {
 
             if (msgText.indexOf("/start") > -1) {
                 var chatId = msg.chat.id;
-                var resp = '哈囉！這裡是' + botData['name'];
-                bot.sendMessage(chatId, resp, { parse_mode: "markdown", reply_to_message_id: msg.message_id });
+                var resp = `哈囉！這裡是${botData['name']}\nchatid:\`${chatId}\``;
+                bot.sendMessage(chatId, resp, {
+                    parse_mode: "markdown",
+                    reply_to_message_id: msg.message_id
+                });
             }
             if (msgText.indexOf("/about") > -1) {
                 var resp = `早安，` + botData['name'] + ` Desu` +
                     '\n---' +
                     '\nGitHub / git.io/BearBearCatBot' +
                     '\n開發者  / git.io/gnehs'
-                bot.sendMessage(msg.chat.id, resp, { parse_mode: "markdown", reply_to_message_id: msg.message_id });
+                bot.sendMessage(msg.chat.id, resp, {
+                    parse_mode: "markdown",
+                    reply_to_message_id: msg.message_id
+                });
             }
             if (msgText.indexOf("/echo") > -1) {
                 var resp = msgText.split(' ')[1] ? msgText.split(' ')[1] : '靠北喔，你後面沒打東西是要 echo 三小'
                 var msgReplyTo = msg.reply_to_message ? msg.reply_to_message.message_id : msg.message_id
-                bot.sendMessage(msg.chat.id, resp, { parse_mode: "HTML", reply_to_message_id: msgReplyTo }).then((msgr) => {
+                bot.sendMessage(msg.chat.id, resp, {
+                    parse_mode: "HTML",
+                    reply_to_message_id: msgReplyTo
+                }).then((msgr) => {
                     bot.deleteMessage(msg.chat.id, msg.message_id)
                 })
             }
             if (msgText.indexOf("/getUser") > -1) {
                 var resp = msgText.split(' ')[1] ? msgText.split(' ')[1] : '靠北喔，你後面沒打東西是要 echo 三小'
                 var msgReplyTo = msg.reply_to_message ? msg.reply_to_message.message_id : msg.message_id
-                bot.sendMessage(msg.chat.id, resp, { parse_mode: "HTML", reply_to_message_id: msgReplyTo }).then((msgr) => {
+                bot.sendMessage(msg.chat.id, resp, {
+                    parse_mode: "HTML",
+                    reply_to_message_id: msgReplyTo
+                }).then((msgr) => {
                     bot.deleteMessage(msg.chat.id, msg.message_id)
                 })
             }
@@ -381,7 +408,10 @@ bot.on('message', async(msg) => {
                     var resp = msgText.split(' ')[1]
                     if (!resp) var resp = '靠北喔，你後面沒打東西是要 leaveChat 三小'
                     else bot.leaveChat(resp)
-                    bot.sendMessage(msg.chat.id, resp, { parse_mode: "HTML", reply_to_message_id: msg.message_id });
+                    bot.sendMessage(msg.chat.id, resp, {
+                        parse_mode: "HTML",
+                        reply_to_message_id: msg.message_id
+                    });
                 }
             }
             if (msgText.indexOf("/bahaforceupdate") > -1) {
@@ -391,19 +421,54 @@ bot.on('message', async(msg) => {
             }
             if (msgText.indexOf("/help") > -1) {
                 var chatId = msg.chat.id;
-                var helpCommand = [{ Command: 'echo', Description: "[HTML] 重複講話", },
-                    { Command: 'addkbd', Description: "新增鍵盤", },
-                    { Command: 'removekbd', Description: "移除鍵盤", },
-                    { Command: 'viewcombo', Description: "查看手賤賤及笨蛋的 Combo，回復別人訊息可取得該使用者的 Combo", },
-                    { Command: 'cleancombo', Description: "清除手賤賤及笨蛋的 Combo(無法復原)", },
-                    { Command: 'dayoff', Description: "查看行政院人事行政總處是否公布放假", },
-                    { Command: 'about', Description: "關於" + botData['name'], },
-                    { Command: 'leave', Description: "[Chat ID] 離開對話(Admin)", },
-                    { Command: 'today', Description: "今日", },
-                    { Command: 'start', Description: "開始", },
-                    { Command: 'help', Description: "你在這裡", },
+                var helpCommand = [{
+                        Command: 'echo',
+                        Description: "[HTML] 重複講話",
+                    },
+                    {
+                        Command: 'addkbd',
+                        Description: "新增鍵盤",
+                    },
+                    {
+                        Command: 'removekbd',
+                        Description: "移除鍵盤",
+                    },
+                    {
+                        Command: 'viewcombo',
+                        Description: "查看手賤賤及笨蛋的 Combo，回復別人訊息可取得該使用者的 Combo",
+                    },
+                    {
+                        Command: 'cleancombo',
+                        Description: "清除手賤賤及笨蛋的 Combo(無法復原)",
+                    },
+                    {
+                        Command: 'dayoff',
+                        Description: "查看行政院人事行政總處是否公布放假",
+                    },
+                    {
+                        Command: 'about',
+                        Description: "關於" + botData['name'],
+                    },
+                    {
+                        Command: 'leave',
+                        Description: "[Chat ID] 離開對話(Admin)",
+                    },
+                    {
+                        Command: 'today',
+                        Description: "今日",
+                    },
+                    {
+                        Command: 'start',
+                        Description: "開始",
+                    },
+                    {
+                        Command: 'help',
+                        Description: "你在這裡",
+                    },
                 ];
-                var helpCommand = helpCommand.sort(function(a, b) { return a.Command > b.Command ? 1 : -1; });
+                var helpCommand = helpCommand.sort(function (a, b) {
+                    return a.Command > b.Command ? 1 : -1;
+                });
                 var resp = '';
                 if (msgText.match('botfather'))
                     for (i in helpCommand)
@@ -412,9 +477,14 @@ bot.on('message', async(msg) => {
                     for (i in helpCommand)
                         var resp = resp + '/' + helpCommand[i].Command + ' ⭐️' + helpCommand[i].Description + '\n';
                 if (msg.chat.type == 'private')
-                    bot.sendMessage(chatId, resp, { reply_to_message_id: msg.message_id, disable_web_page_preview: true });
+                    bot.sendMessage(chatId, resp, {
+                        reply_to_message_id: msg.message_id,
+                        disable_web_page_preview: true
+                    });
                 else
-                    bot.sendMessage(chatId, '請私訊使用', { reply_to_message_id: msg.message_id });
+                    bot.sendMessage(chatId, '請私訊使用', {
+                        reply_to_message_id: msg.message_id
+                    });
             }
             if (msgText.indexOf("/dayoff") > -1) {
                 var data = await getDayoff(),
@@ -430,17 +500,22 @@ bot.on('message', async(msg) => {
                 resp += `---
 \`詳細及最新情報以\` [行政院人事行政總處](goo.gl/GjmZnR) \`公告為主\`
 ${time}`;
-                bot.sendMessage(msg.chat.id, resp, { parse_mode: "markdown", reply_to_message_id: msg.message_id });
+                bot.sendMessage(msg.chat.id, resp, {
+                    parse_mode: "markdown",
+                    reply_to_message_id: msg.message_id
+                });
 
             }
             if (msgText.indexOf("/today") > -1) {
                 request({
                     url: "http://www.cwb.gov.tw/V7/knowledge/",
                     method: "GET"
-                }, function(e, r, b) {
+                }, function (e, r, b) {
                     /* e: 錯誤代碼 */
                     /* b: 傳回的資料內容 */
-                    if (e || !b) { return; }
+                    if (e || !b) {
+                        return;
+                    }
                     var $ = cheerio.load(b);
                     var resp = '';
                     var titles = $(".BoxContent>.earthshockinfo>.BoxTable02>tbody>tr>td:nth-child(1)");
@@ -452,7 +527,11 @@ ${time}`;
                             if (description_i != '#') var resp = resp + $(titles[i]).text() + ' / ' + description_i + '\n';
                     }
                     today = resp + '資料來源 /  goo.gl/vS3LS3';
-                    bot.sendPhoto(msg.chat.id, img, { caption: today, parse_mode: "markdown", reply_to_message_id: msg.message_id });
+                    bot.sendPhoto(msg.chat.id, img, {
+                        caption: today,
+                        parse_mode: "markdown",
+                        reply_to_message_id: msg.message_id
+                    });
                 });
             }
             if (msgText.indexOf("/viewcombo") > -1) {
@@ -464,11 +543,17 @@ ${time}`;
                     var userNAME = msg.reply_to_message.from.first_name;
                 }
                 // 若使用者沒有數據，將數據設為0
-                if (!botData.bitchHand[userID]) { botData.bitchHand[userID] = 0; }
-                if (!botData.stupid[userID]) { botData.stupid[userID] = 0; }
+                if (!botData.bitchHand[userID]) {
+                    botData.bitchHand[userID] = 0;
+                }
+                if (!botData.stupid[userID]) {
+                    botData.stupid[userID] = 0;
+                }
                 //輸出
                 resp = userNAME + " 的 Combo 數\n⭐️ 手賤賤：" + botData.bitchHand[userID] + " 次\n⭐️ 你笨笨：" + botData.stupid[userID] + " 次"
-                bot.sendMessage(msg.chat.id, resp, { reply_to_message_id: msg.message_id });
+                bot.sendMessage(msg.chat.id, resp, {
+                    reply_to_message_id: msg.message_id
+                });
                 //存檔偵測
                 jsonedit = true;
             }
@@ -477,7 +562,9 @@ ${time}`;
                 botData.bitchHand[msg.from.id] = 0;
                 botData.stupid[msg.from.id] = 0;
                 //輸出
-                bot.sendMessage(msg.chat.id, '紀錄已清除', { reply_to_message_id: msg.message_id });
+                bot.sendMessage(msg.chat.id, '紀錄已清除', {
+                    reply_to_message_id: msg.message_id
+                });
                 //存檔偵測
                 jsonedit = true;
             }
@@ -503,28 +590,47 @@ ${time}`;
                 bot.sendMessage(msg.chat.id, '鍵盤已新增', opts);
             }
             if (msgText.indexOf("/getgroupid") > -1) {
-                bot.sendMessage(msg.chat.id, 'id=`' + msg.chat.id + '`', { parse_mode: "markdown", reply_to_message_id: msg.message_id });
+                bot.sendMessage(msg.chat.id, 'id=`' + msg.chat.id + '`', {
+                    parse_mode: "markdown",
+                    reply_to_message_id: msg.message_id
+                });
             }
         }
         // 發 幹 的時候回復
         if (msgText.match(/幹|幹你娘|趕羚羊/) && !msgText.match(/幹嘛/)) {
-            bot.sendMessage(msg.chat.id, "<i>QQ</i>", { parse_mode: "HTML", reply_to_message_id: msg.message_id });
+            bot.sendMessage(msg.chat.id, "<i>QQ</i>", {
+                parse_mode: "HTML",
+                reply_to_message_id: msg.message_id
+            });
         }
         // 發 Ping 的時候回復
         if (msgText == "ping") {
-            bot.sendMessage(msg.chat.id, "<b>PONG</b>", { parse_mode: "HTML", reply_to_message_id: msg.message_id });
+            bot.sendMessage(msg.chat.id, "<b>PONG</b>", {
+                parse_mode: "HTML",
+                reply_to_message_id: msg.message_id
+            });
         }
         if (msg.text == '怕') {
-            bot.sendMessage(msg.chat.id, "嚇到吃手手", { parse_mode: "markdown", reply_to_message_id: msg.message_id });
+            bot.sendMessage(msg.chat.id, "嚇到吃手手", {
+                parse_mode: "markdown",
+                reply_to_message_id: msg.message_id
+            });
         }
         if (msgText.indexOf("ㄈㄓ") === 0) {
-            bot.sendMessage(msg.chat.id, "油", { reply_to_message_id: msg.message_id });
+            bot.sendMessage(msg.chat.id, "油", {
+                reply_to_message_id: msg.message_id
+            });
         }
         if (msgText.indexOf("晚安") === 0) {
-            bot.sendMessage(msg.chat.id, msg.from.first_name + "晚安❤️", { reply_to_message_id: msg.message_id });
+            bot.sendMessage(msg.chat.id, msg.from.first_name + "晚安❤️", {
+                reply_to_message_id: msg.message_id
+            });
         }
         if (msgText.indexOf("喵") === 0) {
-            bot.sendMessage(msg.chat.id, "`HTTP /1.1 200 OK.`", { parse_mode: "markdown", reply_to_message_id: msg.message_id });
+            bot.sendMessage(msg.chat.id, "`HTTP /1.1 200 OK.`", {
+                parse_mode: "markdown",
+                reply_to_message_id: msg.message_id
+            });
         }
 
         if (msgText == '我是笨蛋') {
@@ -536,12 +642,24 @@ ${time}`;
             }
             var resp = "笨笨"
             var combo_count = "\n⭐️ " + combo + " Combo";
-            if (combo > 4) { var resp = combo_count }
-            if (combo > 20) { var resp = "笨蛋沒有極限" + combo_count }
-            if (combo > 40) { var resp = "你這智障" + combo_count }
-            if (combo > 60) { var resp = combo_count }
-            if (combo > 100) { var resp = "幹你機掰人" + combo_count }
-            bot.sendMessage(msg.chat.id, resp, { reply_to_message_id: msg.message_id });
+            if (combo > 4) {
+                var resp = combo_count
+            }
+            if (combo > 20) {
+                var resp = "笨蛋沒有極限" + combo_count
+            }
+            if (combo > 40) {
+                var resp = "你這智障" + combo_count
+            }
+            if (combo > 60) {
+                var resp = combo_count
+            }
+            if (combo > 100) {
+                var resp = "幹你機掰人" + combo_count
+            }
+            bot.sendMessage(msg.chat.id, resp, {
+                reply_to_message_id: msg.message_id
+            });
             // 寫入字串
             botData.stupid[msg.from.id] = combo;
             //存檔偵測
@@ -556,12 +674,24 @@ ${time}`;
             }
             var resp = "走開"
             var combo_count = "\n⭐️ " + combo + " Combo";
-            if (combo > 4) { var resp = combo_count }
-            if (combo > 20) { var resp = "走開，你這賤人" + combo_count }
-            if (combo > 40) { var resp = "你這臭 Bitch" + combo_count }
-            if (combo > 60) { var resp = combo_count }
-            if (combo > 100) { var resp = "幹你機掰人" + combo_count }
-            bot.sendMessage(msg.chat.id, resp, { reply_to_message_id: msg.message_id });
+            if (combo > 4) {
+                var resp = combo_count
+            }
+            if (combo > 20) {
+                var resp = "走開，你這賤人" + combo_count
+            }
+            if (combo > 40) {
+                var resp = "你這臭 Bitch" + combo_count
+            }
+            if (combo > 60) {
+                var resp = combo_count
+            }
+            if (combo > 100) {
+                var resp = "幹你機掰人" + combo_count
+            }
+            bot.sendMessage(msg.chat.id, resp, {
+                reply_to_message_id: msg.message_id
+            });
             // 寫入字串
             botData.bitchHand[msg.from.id] = combo;
             //存檔偵測
@@ -571,7 +701,7 @@ ${time}`;
 });
 
 //存檔
-var writeFile = function() {
+var writeFile = function () {
     if (jsonedit) {
         jsonfile.writeFileSync('botData.owo', botData);
         //存檔偵測
